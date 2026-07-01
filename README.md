@@ -1,106 +1,167 @@
 # 岗位定制简历投递助手 Agent
 
-这是一个本地运行的 AI 求职 Agent MVP。前端负责输入和展示，后端负责安全地调用模型 API。
+一个面向校招/实习投递场景的本地 AI 求职 Agent MVP。它可以识别基础简历和岗位 JD，判断岗位匹配度，整理投递决策，辅助生成官网填表脚本，并维护本地投递追踪表。
 
-## 文件说明
+> 当前项目定位为个人求职效率工具和 Agent 产品原型，不做未经授权的自动批量海投，也不会自动点击最终提交按钮。
 
-- `index.html`：前端页面，浏览器打开。
-- `server.py`：本地后端，提供 `/api/analyze`，调用 OpenAI Responses API。
-- `.env.example`：环境变量示例。
-- `.env`：你自己创建，用来放 API Key，不要上传或发给别人。
+## 功能亮点
 
-## 后端怎么运行
+- **简历识别**：支持粘贴文本，也支持上传/拖拽 `txt`、`md`、`docx`、`pdf` 简历。
+- **JD 识别**：支持粘贴岗位 JD，也支持上传/粘贴岗位截图并调用视觉模型提取文字。
+- **多岗位方向分析**：可识别产品经理、软件开发、机械结构、运营等不同岗位方向。
+- **岗位匹配判断**：输出匹配度、命中能力、能力缺口、投递建议和岗位证据。
+- **可投岗位推荐**：维护企业校招官网入口和部分官方结构化岗位，按企业聚合展示。
+- **官网填表辅助**：基于个人档案生成浏览器 Console 填表脚本，只填表，不自动提交。
+- **投递追踪表**：记录公司、岗位、投递类型、匹配度、状态、下一步，并支持单条删除和 CSV 导出。
+- **安全本地运行**：API Key 只保存在本机 `.env`，不会写入前端页面。
 
-1. 进入项目目录：
+## 项目截图
 
-```powershell
-cd C:\Users\bibbo\Documents\gt\resume_agent
-```
-
-2. 复制配置文件：
-
-```powershell
-Copy-Item .env.example .env
-```
-
-3. 用记事本打开 `.env`，填入你的 API Key：
-
-```powershell
-notepad .env
-```
-
-把这一行：
-
-```text
-OPENAI_API_KEY=sk-your-api-key-here
-```
-
-改成你的真实 Key。
-
-4. 启动后端：
-
-```powershell
-python server.py
-```
-
-看到下面这行说明启动成功：
-
-```text
-Resume Agent backend running: http://127.0.0.1:8787
-```
-
-5. 打开浏览器访问：
+项目当前是本地 Web 应用。启动后访问：
 
 ```text
 http://127.0.0.1:8787
 ```
 
-不要直接双击桌面 HTML 测试模型版。模型版建议通过这个本地地址访问。
+## 技术栈
 
-## 怎么测试
+- 前端：原生 HTML / CSS / JavaScript
+- 后端：Python 标准库 HTTP Server
+- 模型接口：OpenAI Responses API 兼容接口
+- 本地存储：浏览器 `localStorage`
+- 文件解析：内置 `docx` 文本解析；PDF 可选本地解析，必要时调用模型提取
 
-1. 点“填入示例”。
-2. 点“生成材料”。
-3. 如果后端和 API Key 正常，页面会显示“模型生成”。
-4. 如果模型失败，前端会自动退回本地规则版，并提示失败原因。
+## 目录结构
 
-## 新增上传能力
-
-### 上传基础简历
-
-页面左侧“基础简历”上方可以上传文件：
-
-- 支持：`txt`、`md`、`docx`、`pdf`
-- 支持从微信/文件夹拖拽到“基础简历”区域
-- 如果微信复制的是纯文字，也可以直接粘贴到简历输入框
-
-PDF 会先尝试本地解析；如果本机没有 `pypdf/pdfplumber`，或 PDF 是复杂排版/扫描版导致提取文字太少，后端会调用模型读取 PDF 并提取简历文字。因此 PDF 上传需要 `.env` 里配置 `OPENAI_API_KEY`。
-
-可选：如果你想让普通文字 PDF 尽量走本地解析，可以安装：
-
-```powershell
-pip install pypdf
+```text
+resume_agent/
+  index.html        # 前端页面
+  server.py         # 本地后端和模型调用
+  start_agent.bat   # Windows 一键启动脚本
+  .env.example      # 环境变量示例
+  .gitignore        # 忽略密钥和缓存
+  README.md         # 项目说明
 ```
 
-### 上传岗位 JD 截图
+## 快速开始
 
-页面左侧“岗位 JD”上方可以上传岗位截图：
+### 1. 克隆项目
 
-- 支持：`png`、`jpg/jpeg`、`webp`
-- 支持从微信拖拽岗位截图到“岗位 JD”区域
-- 支持复制微信截图后，在“岗位 JD”区域内粘贴
-- 需要：后端已启动，且 `.env` 里配置了 `OPENAI_API_KEY`
+```powershell
+git clone https://github.com/BI8BO-WQ/resume-agent.git
+cd resume-agent
+```
 
-上传后后端会调用模型视觉能力识别截图文字，并自动填入 JD 输入框；如果识别到公司名和岗位名，也会自动填入对应字段。
+### 2. 配置环境变量
 
-注意：不同浏览器和微信版本对“拖拽/粘贴文件”的支持不完全一致。如果拖拽没有反应，可以先把文件保存到桌面，再点击上传按钮；如果截图粘贴没有反应，可以把截图另存为图片后上传。
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
 
-## 安全边界
+填写你的模型 API Key：
 
-- API Key 只放在本机 `.env`，不要写进 `index.html`。
-- 这个工具不做自动登录招聘平台，不做未经授权的批量海投。
-- 建议定位为半自动投递助手：生成不同岗位的简历和话术，由你人工确认后投递。
+```text
+OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_MODEL=gpt-4.1-mini
+OPENAI_FILE_MODEL=gpt-4.1-mini
+OPENAI_VISION_MODEL=gpt-4.1-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
+```
 
-## 官方接口口径
+如果你使用兼容 OpenAI Responses API 的企业网关，可以将 `OPENAI_BASE_URL` 改成对应地址。
 
-后端使用 OpenAI Responses API 的 `POST /responses` 创建模型响应，并使用 `json_schema` 约束模型输出结构。模型名可在 `.env` 中通过 `OPENAI_MODEL` 调整。
+### 3. 启动应用
+
+方式一：双击运行：
+
+```text
+start_agent.bat
+```
+
+方式二：命令行运行：
+
+```powershell
+python server.py
+```
+
+看到以下输出表示启动成功：
+
+```text
+Resume Agent backend running: http://127.0.0.1:8787
+```
+
+然后打开浏览器访问：
+
+```text
+http://127.0.0.1:8787
+```
+
+## 环境变量
+
+| 变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | 模型 API Key | 必填 |
+| `OPENAI_MODEL` | 岗位分析模型 | `gpt-4.1-mini` |
+| `OPENAI_FILE_MODEL` | 简历/PDF 提取模型 | `gpt-4.1-mini` |
+| `OPENAI_VISION_MODEL` | JD 截图识别模型 | `gpt-4.1-mini` |
+| `OPENAI_BASE_URL` | OpenAI 兼容接口地址 | `https://api.openai.com/v1` |
+| `OPENAI_REASONING_EFFORT` | 推理强度 | `low` |
+| `OPENAI_TEXT_VERBOSITY` | 输出详细程度 | `medium` |
+| `HOST` | 本地服务地址 | `127.0.0.1` |
+| `PORT` | 本地服务端口 | `8787` |
+
+## 使用流程
+
+1. 上传或粘贴基础简历。
+2. 粘贴 JD，或上传岗位截图自动识别。
+3. 填写公司名称、岗位名称，选择岗位方向或自动识别。
+4. 点击分析，查看匹配度、能力命中、缺口和投递建议。
+5. 进入“官网填表”，维护个人档案并生成半自动填表脚本。
+6. 保存记录到“投递追踪”，后续维护状态、导出 CSV 或删除无效记录。
+
+## 安全说明
+
+- 不要提交 `.env`，它可能包含真实 API Key。
+- `.gitignore` 已默认忽略 `.env`、缓存和临时文件。
+- 本项目不会自动登录招聘平台，也不会自动点击“提交申请”。
+- 官网填表脚本只建议用于本人主动投递的页面，遇到验证码、协议勾选、最终提交等步骤应人工确认。
+
+## 当前限制
+
+- 官方岗位推荐仍以人工维护入口和部分可解析官网数据为主，动态招聘页面需要二次确认。
+- PDF 简历如果是扫描件或复杂排版，可能需要模型提取，速度会比纯文本慢。
+- 浏览器拖拽/粘贴文件能力受系统、微信和浏览器版本影响。
+- 投递记录保存在浏览器本地，换浏览器或清缓存后可能丢失。
+
+## Roadmap
+
+- [ ] 支持批量导入岗位链接并自动生成投递清单
+- [ ] 增加岗位截止日期、城市、投递批次和网申入口核验
+- [ ] 增加多版本简历档案：产品、软开、机械结构、运营等
+- [ ] 增加投递漏斗：待投递、已投递、笔试、面试、offer、拒绝
+- [ ] 增加岗位推荐解释和投递优先级排序
+- [ ] 支持云端/文件备份投递记录
+
+## 开发维护
+
+常用本地开发命令：
+
+```powershell
+python server.py
+```
+
+提交更新：
+
+```powershell
+git status
+git add .
+git commit -m "Describe your change"
+git push
+```
+
+如果你在国内网络环境下推送 GitHub，需要确保 Git 使用了可访问 GitHub 的代理。
+
+## License
+
+当前项目未设置开源许可证。公开使用、复制或二次分发前，建议先补充明确的 License。
