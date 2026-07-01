@@ -1,0 +1,2760 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>岗位定制简历投递助手 Agent</title>
+  <style>
+    :root {
+      --bg: #eef4fb;
+      --panel: rgba(255, 255, 255, 0.94);
+      --ink: #0e1d33;
+      --muted: #607089;
+      --line: #d6e1ee;
+      --blue: #1769e8;
+      --blue-soft: #e8f1ff;
+      --cyan: #18b8c8;
+      --navy: #0c2344;
+      --green: #12845c;
+      --amber: #b86800;
+      --red: #c2413d;
+      --yellow: #fff3b0;
+      --shadow: 0 16px 40px rgba(15, 35, 70, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(23, 105, 232, 0.08), rgba(24, 184, 200, 0.05) 38%, transparent 72%),
+        repeating-linear-gradient(90deg, rgba(15, 35, 70, 0.035) 0 1px, transparent 1px 72px),
+        repeating-linear-gradient(0deg, rgba(15, 35, 70, 0.03) 0 1px, transparent 1px 72px),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      border-right: 1px solid rgba(214, 225, 238, 0.8);
+      background:
+        linear-gradient(180deg, rgba(12, 35, 68, 0.98), rgba(16, 50, 91, 0.96) 34%, rgba(255,255,255,0.98) 34.2%);
+      padding: 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      box-shadow: 14px 0 34px rgba(15, 35, 70, 0.08);
+    }
+
+    main {
+      padding: 24px 32px;
+      overflow: auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.25;
+      color: #fff;
+      letter-spacing: 0;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 12px 28px rgba(24, 184, 200, 0.24);
+    }
+
+    .eyebrow {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    aside > p {
+      color: rgba(255, 255, 255, 0.78);
+      margin-bottom: 22px;
+    }
+
+    .side-card {
+      margin: 20px -4px 0;
+      padding: 16px;
+      border: 1px solid rgba(214, 225, 238, 0.92);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 16px 34px rgba(15, 35, 70, 0.11);
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 4px;
+    }
+
+    .metric {
+      border: 1px solid rgba(214, 225, 238, 0.85);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.76);
+      padding: 10px;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--navy);
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 7px;
+      font-weight: 700;
+      font-size: 13px;
+      color: #142033;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 10px 11px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    textarea {
+      min-height: 112px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(23, 105, 232, 0.14);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .dropzone {
+      border: 1px dashed #a9bbd3;
+      border-radius: 10px;
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,250,255,0.96));
+      transition: 0.15s ease;
+      box-shadow: 0 8px 22px rgba(15, 35, 70, 0.05);
+    }
+
+    .dropzone.dragover {
+      border-color: var(--blue);
+      background: #f0f7ff;
+      box-shadow: 0 0 0 3px rgba(23, 105, 232, 0.13);
+    }
+
+    .dropzone textarea {
+      margin-top: 8px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      min-height: 42px;
+      transition: 0.15s ease;
+      box-shadow: 0 6px 16px rgba(15, 35, 70, 0.05);
+    }
+
+    button:hover {
+      border-color: #9fb5d1;
+      background: #f8fbff;
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--blue), #0f87e8);
+      color: #fff;
+      border-color: var(--blue);
+      box-shadow: 0 10px 24px rgba(23, 105, 232, 0.22);
+    }
+
+    .primary:hover {
+      background: #1f56b8;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      padding: 14px;
+      border: 1px solid rgba(214, 225, 238, 0.9);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .tabs {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f7faff;
+      overflow: hidden;
+    }
+
+    .tab {
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0;
+      min-height: 42px;
+      padding: 9px 16px;
+      box-shadow: none;
+    }
+
+    .tab:last-child {
+      border-right: 0;
+    }
+
+    .tab.active {
+      background: linear-gradient(180deg, #ffffff, var(--blue-soft));
+      color: var(--blue);
+      font-weight: 700;
+      box-shadow: inset 0 -2px 0 var(--blue);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .score {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ring {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--blue) 0deg, var(--blue) 0deg, #e9eef6 0deg);
+      flex: 0 0 auto;
+      box-shadow: inset 0 0 0 1px rgba(23, 105, 232, 0.10), 0 10px 24px rgba(23, 105, 232, 0.10);
+    }
+
+    .ring span {
+      display: grid;
+      place-items: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #fff;
+      font-weight: 800;
+      color: var(--blue);
+    }
+
+    .pill-row,
+    .kv {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: #edf4fb;
+      color: #243244;
+      padding: 5px 9px;
+      font-size: 12px;
+      line-height: 1.2;
+      border: 1px solid rgba(214, 225, 238, 0.9);
+    }
+
+    .pill.good { background: #e7f5e8; color: var(--green); }
+    .pill.warn { background: #fff4dc; color: var(--amber); }
+    .pill.bad { background: #fde8e7; color: var(--red); }
+
+    .list {
+      display: grid;
+      gap: 9px;
+      padding-left: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .list li {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 11px;
+      background: #fbfdff;
+      line-height: 1.55;
+    }
+
+    .job-board-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .job-board-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .job-board-actions input {
+      width: min(360px, 100%);
+    }
+
+    .job-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .company-groups {
+      display: grid;
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    .company-group {
+      overflow: hidden;
+      border: 1px solid rgba(200, 216, 235, 0.92);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,251,255,0.98)),
+        #fff;
+      box-shadow: 0 18px 38px rgba(18, 42, 82, 0.09);
+    }
+
+    .company-group-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px;
+      border-bottom: 1px solid rgba(214, 225, 238, 0.9);
+      background:
+        linear-gradient(135deg, rgba(232,241,255,0.92), rgba(246,250,255,0.94)),
+        #f8fbff;
+    }
+
+    .company-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .company-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0f62fe, #00a3c8);
+      box-shadow: 0 10px 20px rgba(15, 98, 254, 0.22);
+    }
+
+    .company-title h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .company-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .company-stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .company-stat {
+      border: 1px solid rgba(188, 207, 230, 0.95);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.88);
+      padding: 6px 10px;
+      color: #264365;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .company-jobs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .job-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(214, 225, 238, 0.96);
+      border-radius: 12px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,249,255,0.96)),
+        #fff;
+      padding: 16px;
+      box-shadow: 0 12px 28px rgba(15, 35, 70, 0.08);
+    }
+
+    .job-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--blue), var(--cyan));
+    }
+
+    .job-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .job-title-row h3 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.4;
+    }
+
+    .job-match {
+      flex: 0 0 auto;
+      min-width: 58px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      text-align: center;
+      background: #e8f1ff;
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .job-meta {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .job-meta strong {
+      color: #26364f;
+    }
+
+    .job-reason {
+      margin-top: 10px;
+      color: #23324a;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .job-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .job-card-actions button,
+    .job-card-actions a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-decoration: none;
+      font-size: 13px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 6px 14px rgba(15, 35, 70, 0.05);
+    }
+
+    .job-card-actions a.primary-link {
+      background: linear-gradient(135deg, var(--blue), #0f87e8);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      border: 1px dashed #b6c8de;
+      border-radius: 16px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,247,255,0.95));
+      text-align: center;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    pre,
+    .doc {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      margin: 0;
+      color: var(--ink);
+    }
+
+    .doc mark {
+      background: var(--yellow);
+      padding: 1px 3px;
+      border-radius: 3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+
+    th {
+      background: #f7f9fc;
+      font-size: 13px;
+    }
+
+    .status {
+      width: 160px;
+    }
+
+    .note {
+      border-left: 4px solid var(--blue);
+      background: var(--blue-soft);
+      padding: 12px 13px;
+      border-radius: 6px;
+      line-height: 1.6;
+      color: #1d3f7a;
+    }
+
+    .danger {
+      border-left-color: var(--red);
+      background: #fff1f0;
+      color: #8a2723;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 14px;
+    }
+
+    .form-grid label {
+      margin-top: 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0 12px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #23324a;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .field-card {
+      border: 1px solid #e2e8f2;
+      border-radius: 8px;
+      background: #fbfdff;
+      padding: 10px;
+    }
+
+    .field-card label {
+      margin: 0 0 6px;
+      color: #35445e;
+    }
+
+    .field-card input,
+    .field-card textarea {
+      border-color: transparent;
+      background: #fff;
+    }
+
+    .action-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .action-strip button {
+      min-width: 132px;
+    }
+
+    .ghost {
+      background: #f8fafc;
+    }
+
+    .script-box {
+      min-height: 300px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .status-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(18, 132, 92, 0.12);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+      }
+
+      .span-4,
+      .span-5,
+      .span-6,
+      .span-7,
+      .span-8,
+      .span-12 {
+        grid-column: span 12;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .job-grid,
+      .company-jobs {
+        grid-template-columns: 1fr;
+      }
+
+      .company-group-head {
+        display: grid;
+      }
+
+      .company-stats {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand-row">
+        <div class="brand-mark">AI</div>
+        <div>
+          <div class="eyebrow">RESUME DELIVERY AGENT</div>
+          <h1>岗位定制简历投递助手 Agent</h1>
+        </div>
+      </div>
+      <p>识别你的真实简历和目标岗位 JD，判断是否适合投递，并辅助完善官网申请信息。</p>
+      <div class="metric-row">
+        <div class="metric"><strong>4</strong><span>核心流程</span></div>
+        <div class="metric"><strong>多岗</strong><span>自动识别</span></div>
+        <div class="metric"><strong>半自动</strong><span>官网填表</span></div>
+      </div>
+
+      <div class="side-card">
+      <label for="resume">基础简历</label>
+      <div class="dropzone" id="resumeDropzone">
+        <input id="resumeFile" type="file" accept=".txt,.md,.markdown,.docx,.pdf">
+        <div class="hint" id="resumeFileStatus">可上传/拖拽/粘贴 txt / md / docx / pdf。PDF 会优先本地解析，必要时调用模型提取。</div>
+        <textarea id="resume" spellcheck="false" placeholder="也可以直接粘贴简历正文，或把微信里的简历文件拖到这里。"></textarea>
+      </div>
+      <div class="hint">建议包含：目标岗位、教育、经历、项目、技能、作品/成果。</div>
+      </div>
+
+      <div class="side-card">
+      <label for="company">公司名称</label>
+      <input id="company" placeholder="例如：字节跳动">
+
+      <label for="role">岗位名称</label>
+      <input id="role" placeholder="例如：AI产品经理">
+
+      <label for="jd">岗位 JD</label>
+      <div class="dropzone" id="jdDropzone">
+        <input id="jdImage" type="file" accept="image/png,image/jpeg,image/webp">
+        <div class="hint" id="jdImageStatus">可上传/拖拽/粘贴岗位截图 png / jpg / webp，后端会调用模型视觉识别。</div>
+        <textarea id="jd" spellcheck="false" placeholder="也可以直接粘贴 JD 文本，或把微信里的岗位截图拖到这里。"></textarea>
+      </div>
+      </div>
+
+      <div class="side-card">
+      <label for="jobFamily">岗位方向</label>
+      <select id="jobFamily">
+        <option value="auto">自动识别</option>
+        <option value="pm">产品经理 / AI产品</option>
+        <option value="growth">运营 / 增长</option>
+        <option value="software">软件开发 / 后端 / 前端</option>
+        <option value="mechanical">机械结构 / 结构设计</option>
+        <option value="technical">技术产品 / 解决方案</option>
+        <option value="general">通用岗位</option>
+      </select>
+
+      <label for="style">表达侧重</label>
+      <select id="style">
+        <option value="pm">产品经理：业务价值 + 用户洞察</option>
+        <option value="growth">增长运营：指标 + 转化 + 内容</option>
+        <option value="software">软开：技术栈 + 项目 + 工程质量</option>
+        <option value="mechanical">机械结构：结构设计 + 制造工艺 + 量产问题</option>
+        <option value="technical">技术产品：系统设计 + 数据 + 模型</option>
+        <option value="general">通用：岗位关键词 + 经历证据</option>
+      </select>
+
+      <div class="actions">
+        <button class="primary" id="runBtn">分析岗位</button>
+        <button id="sampleBtn">填入示例</button>
+        <button id="clearBtn">清空</button>
+        <button id="saveBtn">保存记录</button>
+      </div>
+      </div>
+
+      <div class="note danger" style="margin-top:18px">
+        不做未经授权的全自动海投。本工具定位为半自动投递助手：识别、判断、填表，最终投递由你确认。
+      </div>
+
+      <div class="note" id="backendStatus" style="margin-top:12px">
+        模型后端：未检测。通过 <strong>python server.py</strong> 启动后，建议访问 http://127.0.0.1:8787 使用模型版。
+      </div>
+    </aside>
+
+    <main>
+      <div class="toolbar">
+        <div class="tabs" aria-label="结果视图">
+          <button class="tab active" data-tab="analysis">匹配分析</button>
+          <button class="tab" data-tab="resumeTab">投递决策</button>
+          <button class="tab" data-tab="letter">打招呼语</button>
+          <button class="tab" data-tab="recommend">可投岗位</button>
+          <button class="tab" data-tab="autofill">官网填表</button>
+          <button class="tab" data-tab="tracker">投递追踪</button>
+        </div>
+        <div class="actions" style="display:flex;margin:0">
+          <button id="copyBtn">复制当前结果</button>
+          <button id="exportBtn">导出CSV</button>
+        </div>
+      </div>
+
+      <section id="empty" class="empty">
+        <div>
+          <h2>启动岗位适配与官网投递流程</h2>
+          <p>上传简历，粘贴或识别 JD，系统会判断是否适合投递、整理申请信息，并生成官网填表脚本。</p>
+          <div class="pill-row" style="justify-content:center;margin-top:18px">
+            <span class="pill good">简历解析</span>
+            <span class="pill">JD 识别</span>
+            <span class="pill">多岗位匹配</span>
+            <span class="pill">申请信息完善</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="analysis" class="tabpane hidden">
+        <div class="grid">
+          <div class="panel span-4">
+            <h2>岗位匹配度</h2>
+            <div class="score">
+              <div class="ring" id="scoreRing"><span id="scoreText">0%</span></div>
+              <div>
+                <h3 id="scoreLevel">等待分析</h3>
+                <p id="scoreReason">系统会根据 JD 关键词、经历覆盖度和技能匹配情况生成初步判断。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel span-8">
+            <h2>命中关键词</h2>
+            <div id="keywords" class="pill-row"></div>
+            <h2 style="margin-top:16px">缺口提醒</h2>
+            <div id="gaps" class="pill-row"></div>
+          </div>
+
+          <div class="panel span-6">
+            <h2>JD 提取的核心要求</h2>
+            <ul id="requirements" class="list"></ul>
+          </div>
+
+          <div class="panel span-6">
+            <h2>建议强化的简历表达</h2>
+            <ul id="suggestions" class="list"></ul>
+          </div>
+
+          <div class="panel span-12">
+            <h2>投递建议</h2>
+            <p id="applyAdvice" class="doc"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="resumeTab" class="tabpane hidden">
+        <div class="grid">
+          <div class="panel span-12">
+            <h2>投递决策与申请准备</h2>
+            <div id="tailoredResume" class="doc"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="letter" class="tabpane hidden">
+        <div class="grid">
+          <div class="panel span-12">
+            <h2>招聘平台打招呼语</h2>
+            <div id="greeting" class="doc"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="recommend" class="tabpane hidden">
+        <div class="grid">
+          <div class="panel span-12">
+            <div class="job-board-head">
+              <div>
+                <h2>可投企业与岗位推荐</h2>
+                <p id="jobVerifyStatus">优先展示官方校招官网已核验在招岗位，并按你的简历/JD方向排序。</p>
+              </div>
+              <div class="job-board-actions">
+                <input id="jobSearch" placeholder="筛选岗位/城市/企业，例如：结构、软件、无锡">
+                <button class="primary" id="refreshJobsBtn">刷新官方岗位</button>
+              </div>
+            </div>
+            <div class="note" style="margin-top:14px">
+              只把能从企业官方招聘页或校招官网入口核验的信息放进推荐池。动态页面或岗位状态变更较快，正式提交前仍需打开官网二次确认。
+            </div>
+            <div id="jobRecommendations" class="company-groups"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="autofill" class="tabpane hidden">
+        <div class="grid">
+          <div class="panel span-12">
+            <h2>官网半自动填表档案</h2>
+            <div class="note">
+              简化流程：先确认/补全档案，点“提取并复制脚本”，再到校招官网申请页 Console 粘贴运行。脚本只填表，不会自动点击“提交申请”。
+            </div>
+          </div>
+
+          <div class="panel span-7">
+            <h2>常用应聘信息</h2>
+            <div class="section-title">基础信息</div>
+            <div class="form-grid">
+              <div class="field-card"><label>姓名</label><input id="profileName" placeholder="例如：甘婷"></div>
+              <div class="field-card"><label>手机号</label><input id="profilePhone" placeholder="例如：13800000000"></div>
+              <div class="field-card"><label>邮箱</label><input id="profileEmail" placeholder="例如：name@example.com"></div>
+              <div class="field-card"><label>性别</label><input id="profileGender" placeholder="例如：女"></div>
+              <div class="field-card"><label>最高学历</label><input id="profileDegree" placeholder="例如：硕士 / 本科"></div>
+              <div class="field-card"><label>学校</label><input id="profileSchool" placeholder="例如：上海交通大学"></div>
+              <div class="field-card"><label>专业</label><input id="profileMajor" placeholder="例如：机械设计制造及其自动化"></div>
+              <div class="field-card"><label>毕业时间</label><input id="profileGraduation" placeholder="例如：2027-06"></div>
+              <div class="field-card"><label>意向工作城市</label><input id="profileCity1" placeholder="例如：上海市"></div>
+              <div class="field-card"><label>第二志愿城市</label><input id="profileCity2" placeholder="例如：无锡"></div>
+              <div class="field-card"><label>第三志愿城市</label><input id="profileCity3" placeholder="例如：东莞"></div>
+              <div class="field-card"><label>是否接受调剂</label><input id="profileTransfer" placeholder="例如：是"></div>
+              <div class="field-card"><label>到岗时间</label><input id="profileAvailability" placeholder="例如：可立即到岗"></div>
+              <div class="field-card"><label>作品集/项目链接</label><input id="profilePortfolio" placeholder="例如：https://..."></div>
+            </div>
+
+            <div class="section-title">经历材料</div>
+            <div class="field-card"><label>教育背景补充</label><textarea id="profileEducation" placeholder="用于填写教育背景、主修课程、GPA、排名等。"></textarea></div>
+            <div class="field-card"><label>高中经历</label><textarea id="profileHighSchool" placeholder="部分校招官网会要求填写高中经历。"></textarea></div>
+            <div class="field-card"><label>获奖经历</label><textarea id="profileAwards" placeholder="用于填写奖学金、竞赛、荣誉等。"></textarea></div>
+            <div class="field-card"><label>在校职务</label><textarea id="profileCampusRoles" placeholder="用于填写学生干部、社团、班委、志愿服务等。"></textarea></div>
+            <div class="field-card"><label>实习/工作经历摘要</label><textarea id="profileExperience" placeholder="用于填写实习经历、项目经历、工作职责等长文本。"></textarea></div>
+            <div class="field-card"><label>项目经历摘要</label><textarea id="profileProjects" placeholder="用于填写项目经验、作品、竞赛、科研项目等。"></textarea></div>
+            <div class="field-card"><label>证书</label><textarea id="profileCertificates" placeholder="用于填写英语、计算机、职业资格、技能证书等。"></textarea></div>
+            <div class="field-card"><label>自我描述</label><textarea id="profileSummary" placeholder="用于填写自我描述/个人优势。"></textarea></div>
+            <div class="action-strip">
+              <button class="primary" id="quickAutofillBtn">提取并复制脚本</button>
+              <button class="ghost" id="extractProfileBtn">仅从简历提取</button>
+              <button class="ghost" id="saveProfileBtn">保存档案</button>
+            </div>
+          </div>
+
+          <div class="panel span-5">
+            <h2>填表脚本</h2>
+            <div class="section-title">复制到官网 Console</div>
+            <div class="field-card"><label>简历文件名关键词</label><input id="profileResumeFileName" placeholder="例如：简历-机械.pdf"></div>
+            <div class="hint">浏览器脚本通常不能直接读取本地文件路径；若官网文件选择框无法自动写入，请手动点击上传简历。</div>
+            <div class="field-card" style="margin-top:12px"><label>脚本输出</label><textarea id="autofillScript" class="script-box" spellcheck="false" placeholder="点击生成脚本后，这里会出现可复制的 Console 脚本。"></textarea></div>
+            <div class="action-strip">
+              <button class="primary" id="generateAutofillBtn">生成脚本</button>
+              <button class="ghost" id="copyAutofillBtn">复制脚本</button>
+            </div>
+            <div class="note danger" style="margin-top:12px">
+              仅用于你本人主动投递的官网页面。遇到验证码、登录、隐私协议、最终提交按钮，请人工处理和确认。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tracker" class="tabpane hidden">
+        <div class="panel">
+          <h2>投递追踪表</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>公司</th>
+                <th>岗位</th>
+                <th>匹配度</th>
+                <th>核心亮点</th>
+                <th class="status">状态</th>
+                <th>下一步</th>
+              </tr>
+            </thead>
+            <tbody id="trackerBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const cnStopwords = new Set([
+      "岗位", "职位", "负责", "能力", "相关", "工作", "要求", "优先", "经验", "进行", "能够",
+      "具备", "熟悉", "良好", "以及", "包括", "通过", "根据", "完成", "项目", "产品", "业务"
+    ]);
+
+    const jobFamilies = {
+      pm: {
+        label: "产品经理 / AI产品",
+        detect: ["产品经理", "ai产品", "大模型产品", "agent", "智能体", "prd", "原型", "用户研究"],
+        focus: ["突出用户洞察、竞品调研和产品判断", "强调从场景到MVP再到指标的闭环", "补充你对业务价值和产品边界的理解"],
+        positioning: "具备用户需求拆解、竞品分析、产品方案、原型设计、项目推进和指标复盘能力，能够把业务场景转化为可落地的产品方案。",
+        projectGuide: ["按“用户场景-痛点-方案-结果/指标”重写项目。", "把 PRD、原型、竞品、数据指标等证据放到简历前半部分。", "如果是 AI/Agent 岗位，补充模型能力边界、工作流、知识库、工具调用和人工确认机制。"],
+        fallbackSkills: ["用户需求分析", "竞品调研", "产品方案设计"]
+      },
+      growth: {
+        label: "运营 / 增长",
+        detect: ["运营", "增长", "用户增长", "活动运营", "内容运营", "私域", "转化", "留存", "社群"],
+        focus: ["突出指标意识、转化漏斗和用户运营", "强调内容/私域/活动等增长方法", "补充你如何验证效果和复盘数据"],
+        positioning: "具备用户运营、内容/活动策划、转化漏斗分析、数据复盘和跨团队协作能力，能够围绕业务目标提升拉新、转化、留存或活跃。",
+        projectGuide: ["按“目标-动作-数据-复盘”重写运营经历。", "补充曝光、转化率、留存、GMV、线索量等真实指标。", "说明你负责的渠道、用户分层、内容策略或活动机制。"],
+        fallbackSkills: ["用户运营", "活动策划", "数据复盘"]
+      },
+      software: {
+        label: "软件开发 / 后端 / 前端",
+        detect: ["软件开发", "后端", "前端", "java", "python", "go", "c++", "spring", "vue", "react", "数据库", "算法", "接口"],
+        focus: ["突出技术栈、项目复杂度和工程质量", "说明你负责的模块、接口、性能或稳定性", "补充代码、项目、竞赛或实习证明"],
+        positioning: "具备软件工程基础、主流开发语言/框架、数据库、接口开发和项目交付能力，能够独立完成模块开发并关注性能、稳定性和可维护性。",
+        projectGuide: ["按“技术栈-负责模块-难点-结果”重写项目。", "补充接口、数据库、并发、性能优化、测试、部署等工程证据。", "如果有 GitHub、项目链接、竞赛或实习经历，放到简历显眼位置。"],
+        fallbackSkills: ["编程语言", "数据库", "项目开发"]
+      },
+      mechanical: {
+        label: "机械结构 / 结构设计",
+        detect: ["机械", "结构", "结构设计", "solidworks", "proe", "creo", "cad", "ug", "catia", "ansys", "有限元", "公差", "钣金", "注塑", "模具"],
+        focus: ["突出结构设计、制图建模和工程落地", "说明材料、工艺、公差、仿真或可靠性经验", "补充量产、装配、降本或问题闭环案例"],
+        positioning: "具备机械结构设计、三维建模、工程制图、材料/工艺理解和问题分析能力，能够围绕装配、强度、成本、可靠性和量产可制造性优化结构方案。",
+        projectGuide: ["按“产品/部件-结构方案-工艺/材料-验证结果”重写项目。", "补充 SolidWorks/Creo/CAD/UG/CATIA、工程图、公差分析、有限元、样机验证等证据。", "如果做过装配问题、强度问题、降本或量产优化，要写清问题和解决动作。"],
+        fallbackSkills: ["结构设计", "三维建模", "工程制图"]
+      },
+      technical: {
+        label: "技术产品 / 解决方案",
+        detect: ["技术产品", "解决方案", "售前", "系统方案", "api", "数据", "模型", "工程协作", "架构"],
+        focus: ["突出技术理解、系统边界和方案交付", "说明你如何连接客户需求和研发实现", "补充接口、数据、模型或工程协作证据"],
+        positioning: "具备技术理解、需求澄清、方案设计、跨团队协作和交付推进能力，能够把客户/业务问题拆解为系统方案和可执行需求。",
+        projectGuide: ["按“客户/业务问题-系统方案-协作推进-交付结果”重写项目。", "补充接口、数据流、系统边界、模型能力或方案文档证据。", "强调你如何和研发、客户、运营或交付团队协作。"],
+        fallbackSkills: ["技术理解", "方案设计", "项目推进"]
+      },
+      general: {
+        label: "通用岗位",
+        detect: [],
+        focus: ["突出岗位 JD 中反复出现的关键词", "用真实经历证明能力匹配", "补充项目结果、工具能力和协作证据"],
+        positioning: "具备岗位相关的核心技能、项目经历和协作能力，能够结合目标岗位要求快速补齐简历表达和投递话术。",
+        projectGuide: ["按“岗位要求-真实经历-结果证据”重写项目。", "把 JD 高频关键词放到简历摘要和项目标题附近。", "保留真实经历，不要为了匹配岗位编造能力。"],
+        fallbackSkills: ["岗位相关技能", "项目经验", "沟通协作"]
+      }
+    };
+
+    const skillMap = [
+      { key: "AI产品", family: "pm", words: ["ai产品", "人工智能产品", "大模型产品", "llm", "agent", "智能体"] },
+      { key: "Agent", family: "pm", words: ["agent", "智能体", "工具调用", "工作流", "workflow", "function calling"] },
+      { key: "大模型", family: "pm", words: ["大模型", "llm", "prompt", "提示词", "rag", "知识库"] },
+      { key: "用户研究", family: "pm", words: ["用户研究", "用户访谈", "需求分析", "用户需求", "痛点"] },
+      { key: "产品设计", family: "pm", words: ["prd", "原型", "产品设计", "交互", "流程设计"] },
+      { key: "项目管理", family: "general", words: ["项目管理", "跨部门", "推进", "协同", "落地", "交付"] },
+      { key: "数据分析", family: "general", words: ["数据分析", "指标", "漏斗", "转化率", "留存", "ab测试", "a/b", "sql"] },
+      { key: "用户运营", family: "growth", words: ["用户运营", "社群", "私域", "用户增长", "留存", "活跃", "召回"] },
+      { key: "活动/内容运营", family: "growth", words: ["活动运营", "内容运营", "活动策划", "内容策划", "新媒体", "直播", "社群运营"] },
+      { key: "商业化/增长", family: "growth", words: ["商业化", "增长", "获客", "营收", "定价", "付费", "转化", "gmv"] },
+      { key: "编程语言", family: "software", words: ["java", "python", "go", "golang", "c++", "c#", "javascript", "typescript", "前端", "后端"] },
+      { key: "Web框架", family: "software", words: ["spring", "springboot", "django", "flask", "fastapi", "vue", "react", "node", "express"] },
+      { key: "数据库", family: "software", words: ["mysql", "postgresql", "redis", "mongodb", "数据库", "sql", "索引", "事务"] },
+      { key: "接口/服务开发", family: "software", words: ["api", "接口", "微服务", "rpc", "restful", "http", "服务端", "分布式"] },
+      { key: "测试/部署", family: "software", words: ["测试", "单元测试", "docker", "k8s", "linux", "ci/cd", "部署", "性能优化"] },
+      { key: "结构设计", family: "mechanical", words: ["结构设计", "机械结构", "机构设计", "结构方案", "结构优化", "装配"] },
+      { key: "三维建模/制图", family: "mechanical", words: ["solidworks", "creo", "proe", "cad", "autocad", "ug", "nx", "catia", "工程图", "三维建模"] },
+      { key: "材料/工艺", family: "mechanical", words: ["材料", "工艺", "钣金", "注塑", "机加工", "模具", "表面处理", "热处理"] },
+      { key: "仿真/强度", family: "mechanical", words: ["ansys", "有限元", "仿真", "强度", "刚度", "疲劳", "cae"] },
+      { key: "公差/量产", family: "mechanical", words: ["公差", "尺寸链", "量产", "dfm", "dfa", "可靠性", "样机", "降本"] },
+      { key: "技术理解", family: "technical", words: ["技术理解", "系统边界", "架构", "api", "数据流", "工程协作", "模型评估"] },
+      { key: "解决方案", family: "technical", words: ["解决方案", "售前", "客户需求", "方案设计", "系统方案", "交付", "实施"] },
+      { key: "ToB", family: "technical", words: ["tob", "b端", "企业", "saas", "crm", "客户成功", "企业服务"] }
+    ];
+
+    const API_BASE = `${location.protocol}//${location.host}`;
+    const profileFieldIds = [
+      "profileName",
+      "profilePhone",
+      "profileEmail",
+      "profileGender",
+      "profileDegree",
+      "profileSchool",
+      "profileMajor",
+      "profileGraduation",
+      "profileCity1",
+      "profileCity2",
+      "profileCity3",
+      "profileTransfer",
+      "profileAvailability",
+      "profilePortfolio",
+      "profileEducation",
+      "profileHighSchool",
+      "profileAwards",
+      "profileCampusRoles",
+      "profileExperience",
+      "profileProjects",
+      "profileCertificates",
+      "profileSummary",
+      "profileResumeFileName"
+    ];
+
+    const sampleResume = `姓名：甘婷
+目标：AI 产品经理 / 大模型应用产品经理
+
+教育背景：
+材料/传感相关研究经历，具备论文阅读、技术理解和复杂信息结构化能力。
+
+项目经历：
+1. 中国 Agent 产品竞品调研
+- 调研扣子、腾讯元器、千帆 AppBuilder、Dify、Manus 等产品，拆解智能体创建、工作流、知识库、插件调用和商业化方式。
+- 输出竞品矩阵、场景机会表和自研 Agent 方向建议。
+
+2. AI 求职/销售运营 Agent 方向探索
+- 梳理 ToB 客户跟进、AI 求职管家、垂直行业客服三个 Agent 场景。
+- 设计场景、用户需求、痛点、自动化方案、MVP 功能和指标评估。
+
+3. 科研文献汇报自动化
+- 将多篇英文论文结构化为汇报 PPT，提取研究背景、方法、图表、结论和创新点。
+- 关注多模态可穿戴传感、柔性健康监测等前沿方向。
+
+技能：
+用户需求分析、竞品调研、PRD、原型设计、Prompt 设计、Agent 工作流设计、数据分析、结构化表达、PPT汇报。`;
+
+    const sampleJd = `岗位：AI 产品经理 - Agent 方向
+职责：
+1. 负责大模型 Agent 产品的需求分析、产品规划和落地，围绕用户真实业务场景设计智能体工作流。
+2. 与算法、工程、设计、运营团队协作，推动 Prompt、RAG、工具调用、评估体系等能力产品化。
+3. 通过用户访谈、竞品分析和数据指标，持续优化产品体验和任务完成率。
+4. 关注 AI Agent、Copilot、智能办公、企业效率工具等方向。
+
+要求：
+1. 有 AI 产品、大模型应用、智能体或企业效率工具相关经验优先。
+2. 具备较强用户需求分析、逻辑表达、项目推进和数据分析能力。
+3. 理解大模型基本能力边界，了解 Prompt、RAG、工作流、工具调用、模型评估。
+4. 有可展示的 AI 产品作品、原型或实际项目者优先。`;
+
+    const PORTAL_VERIFY_DATE = "2026-07-01";
+    const portalVerificationText = "已核验企业官方校招入口可访问；具体岗位开放状态、投递批次和城市需进入官网站内搜索后确认。";
+
+    function portalJob(config) {
+      return {
+        company: config.company,
+        role: config.role,
+        family: config.family || "general",
+        status: "官方岗位库入口",
+        verificationLevel: "portal",
+        source: config.source,
+        sourceUrl: config.sourceUrl,
+        url: config.url || config.sourceUrl,
+        city: config.city || "详见官网",
+        target: config.target || "校招/实习岗位入口，需站内确认可投状态",
+        category: config.category || "岗位库入口",
+        updatedAt: PORTAL_VERIFY_DATE,
+        verifiedAt: PORTAL_VERIFY_DATE,
+        verification: config.verification || portalVerificationText,
+        keywords: config.keywords || []
+      };
+    }
+
+    const fallbackVerifiedJobs = [
+      {
+        company: "华勤技术",
+        role: "结构工程师（2027届）",
+        family: "mechanical",
+        status: "官方申请页可打开",
+        verificationLevel: "official-page",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/41f2ec1d-4824-42e8-b9a7-9799ef97fa5d/apply",
+        city: "江苏-无锡等，详见官网",
+        target: "2027届，详见官网",
+        category: "结构类",
+        updatedAt: "2026-06-30",
+        verifiedAt: "2026-06-30",
+        verification: "用户提供的企业校招官网申请页可打开；岗位详情页需打开官网二次确认最终状态。",
+        keywords: ["结构设计", "机械", "工程图", "Creo", "SolidWorks", "产品结构"]
+      },
+      {
+        company: "华勤技术",
+        role: "硬件开发工程师（2027届）",
+        family: "mechanical",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/e0b16f7d-8487-41dd-b453-af2c0b856388/apply",
+        city: "上海 / 东莞 / 南昌等",
+        target: "27届国内外应届毕业生",
+        category: "硬件类",
+        updatedAt: "2026-06-30T02:04:08.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：e0b16f7d-8487-41dd-b453-af2c0b856388",
+        keywords: ["硬件", "工程", "结构", "机械", "测试"]
+      },
+      {
+        company: "华勤技术",
+        role: "IT开发工程师（2027届）",
+        family: "software",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/1df6510d-7fec-4a5e-8e69-1b1fd751198b/apply",
+        city: "西安 / 上海 / 南昌 / 东莞 / 无锡",
+        target: "27届国内外应届毕业生",
+        category: "IT类",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：1df6510d-7fec-4a5e-8e69-1b1fd751198b",
+        keywords: ["IT", "开发", "软件", "系统", "数据库"]
+      },
+      {
+        company: "华勤技术",
+        role: "软件开发助理工程师（2027届）",
+        family: "software",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/34bf50f1-8e13-4f6a-ad53-86e886782851/apply",
+        city: "无锡 / 武汉 / 重庆",
+        target: "详见官网",
+        category: "其它",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：34bf50f1-8e13-4f6a-ad53-86e886782851",
+        keywords: ["软件开发", "开发", "系统", "工程"]
+      },
+      {
+        company: "华勤技术",
+        role: "软件测试工程师（2027届）",
+        family: "software",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/070ce997-1c9b-41f2-8992-1baf497f8109/apply",
+        city: "上海 / 无锡 / 西安 / 南昌 / 天津 / 东莞",
+        target: "27届国内外应届毕业生",
+        category: "测试类",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：070ce997-1c9b-41f2-8992-1baf497f8109",
+        keywords: ["软件测试", "测试", "质量", "系统"]
+      },
+      {
+        company: "华勤技术",
+        role: "测试工程师（2027届）",
+        family: "software",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/13b916f3-d7af-4182-b27f-0fb39502f0a3/apply",
+        city: "上海 / 西安 / 无锡 / 南昌 / 东莞",
+        target: "27届国内外应届毕业生",
+        category: "测试类",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：13b916f3-d7af-4182-b27f-0fb39502f0a3",
+        keywords: ["测试", "质量", "硬件", "软件"]
+      },
+      {
+        company: "华勤技术",
+        role: "工艺工程师（2027届）",
+        family: "mechanical",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/1db90427-88f1-45df-b6df-508dbf741102/apply",
+        city: "上海 / 东莞 / 南昌 / 无锡 / 西安",
+        target: "27届国内外应届毕业生",
+        category: "工程技术类",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：1db90427-88f1-45df-b6df-508dbf741102",
+        keywords: ["工艺", "制造", "工程", "结构", "材料"]
+      },
+      {
+        company: "华勤技术",
+        role: "自动化工程师（2027届）",
+        family: "mechanical",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/2607940e-981d-4778-acaa-3f2191cfb22e/apply",
+        city: "东莞 / 无锡 / 上海 / 南昌 / 西安",
+        target: "27届国内外应届毕业生",
+        category: "工程技术类",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：2607940e-981d-4778-acaa-3f2191cfb22e",
+        keywords: ["自动化", "设备", "工程", "制造"]
+      },
+      {
+        company: "华勤技术",
+        role: "供应商质量管理工程师（2027届）",
+        family: "mechanical",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/0a955d67-d257-4b99-973f-c0e64b5463ff/apply",
+        city: "无锡 / 西安 / 上海 / 南昌 / 东莞",
+        target: "27届国内外应届毕业生",
+        category: "工程技术类",
+        updatedAt: "2026-06-30T06:00:31.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：0a955d67-d257-4b99-973f-c0e64b5463ff",
+        keywords: ["质量", "供应商", "工程", "制造", "工艺"]
+      },
+      {
+        company: "华勤技术",
+        role: "设备工程师（2027届）",
+        family: "mechanical",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/708cd9de-fde5-44f5-b856-9bbab26ea2f0/apply",
+        city: "全国",
+        target: "详见官网",
+        category: "其它",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：708cd9de-fde5-44f5-b856-9bbab26ea2f0",
+        keywords: ["设备", "自动化", "工程", "制造"]
+      },
+      {
+        company: "华勤技术",
+        role: "MES运维工程师（2027届）",
+        family: "software",
+        status: "已核验在招",
+        verificationLevel: "open",
+        source: "华勤技术校招官网（Moka）",
+        sourceUrl: "https://app.mokahr.com/campus-recruitment/hq/45417#/jobs",
+        url: "https://app.mokahr.com/campus-recruitment/hq/45417#/job/7c6a3bf2-c30d-4942-9193-4496dfd724af/apply",
+        city: "全国",
+        target: "详见官网",
+        category: "其它",
+        updatedAt: "2026-06-30T01:28:36.000Z",
+        verifiedAt: "2026-06-30",
+        verification: "官方页面结构化数据返回 status=open；职位 ID：7c6a3bf2-c30d-4942-9193-4496dfd724af",
+        keywords: ["MES", "运维", "系统", "IT"]
+      },
+      {
+        company: "字节跳动",
+        role: "大模型应用框架研发工程师-Flow-筋斗云人才计划",
+        family: "software",
+        status: "官方岗位库入口",
+        verificationLevel: "portal",
+        source: "字节跳动校园招聘官网",
+        sourceUrl: "https://jobs.bytedance.com/campus/position",
+        url: "https://jobs.bytedance.com/campus/position",
+        city: "详见官网",
+        target: "2027届项目入口，需站内确认可投状态",
+        category: "AI应用 / 研发",
+        updatedAt: "2026-06-30",
+        verifiedAt: "2026-06-30",
+        verification: "官方校招页包含该项目/岗位关键词；动态职位列表需打开官网二次确认。",
+        keywords: ["大模型", "AI应用", "研发", "框架", "多模态"]
+      },
+      {
+        company: "字节跳动",
+        role: "NLP算法工程师-抖音智能对话-筋斗云人才计划",
+        family: "software",
+        status: "官方岗位库入口",
+        verificationLevel: "portal",
+        source: "字节跳动校园招聘官网",
+        sourceUrl: "https://jobs.bytedance.com/campus/position",
+        url: "https://jobs.bytedance.com/campus/position",
+        city: "详见官网",
+        target: "2027届项目入口，需站内确认可投状态",
+        category: "AI应用 / 算法",
+        updatedAt: "2026-06-30",
+        verifiedAt: "2026-06-30",
+        verification: "官方校招页包含该项目/岗位关键词；动态职位列表需打开官网二次确认。",
+        keywords: ["NLP", "大模型", "对话机器人", "算法", "评估"]
+      },
+      portalJob({
+        company: "华为",
+        role: "校招岗位库：软件开发工程师 / AI算法方向",
+        family: "software",
+        source: "华为校园招聘官网",
+        sourceUrl: "https://career.huawei.com/reccampportal/portal5/campus-recruitment.html",
+        category: "软件 / AI",
+        keywords: ["软件开发", "AI", "算法", "大模型", "云计算", "后端"]
+      }),
+      portalJob({
+        company: "华为",
+        role: "校招岗位库：硬件开发 / 机械结构方向",
+        family: "mechanical",
+        source: "华为校园招聘官网",
+        sourceUrl: "https://career.huawei.com/reccampportal/portal5/campus-recruitment.html",
+        category: "硬件 / 结构",
+        keywords: ["硬件", "结构", "机械", "材料", "电子", "产品设计"]
+      }),
+      portalJob({
+        company: "腾讯",
+        role: "校招岗位库：技术研发 / 后台开发方向",
+        family: "software",
+        source: "腾讯校招官网",
+        sourceUrl: "https://join.qq.com/",
+        category: "技术研发",
+        keywords: ["后台开发", "C++", "Java", "算法", "云计算", "AI"]
+      }),
+      portalJob({
+        company: "腾讯",
+        role: "校招岗位库：产品策划 / 运营方向",
+        family: "product",
+        source: "腾讯校招官网",
+        sourceUrl: "https://join.qq.com/",
+        category: "产品 / 运营",
+        keywords: ["产品策划", "用户研究", "数据分析", "运营", "增长"]
+      }),
+      portalJob({
+        company: "阿里巴巴",
+        role: "校招岗位库：研发工程师 / 算法方向",
+        family: "software",
+        source: "阿里巴巴校园招聘官网",
+        sourceUrl: "https://talent.alibaba.com/campus/home",
+        category: "研发 / 算法",
+        keywords: ["研发", "Java", "算法", "机器学习", "云计算", "数据"]
+      }),
+      portalJob({
+        company: "阿里巴巴",
+        role: "校招岗位库：产品经理 / 业务运营方向",
+        family: "product",
+        source: "阿里巴巴校园招聘官网",
+        sourceUrl: "https://talent.alibaba.com/campus/home",
+        category: "产品 / 运营",
+        keywords: ["产品经理", "商业分析", "用户需求", "运营", "数据分析"]
+      }),
+      portalJob({
+        company: "百度",
+        role: "校招岗位库：AI算法 / 大模型方向",
+        family: "software",
+        source: "百度招聘官网",
+        sourceUrl: "https://talent.baidu.com/jobs/list?recruitType=CAMPUS",
+        category: "AI / 算法",
+        keywords: ["AI", "大模型", "NLP", "算法", "深度学习", "搜索"]
+      }),
+      portalJob({
+        company: "百度",
+        role: "校招岗位库：软件研发 / 产品经理方向",
+        family: "product",
+        source: "百度招聘官网",
+        sourceUrl: "https://talent.baidu.com/jobs/list?recruitType=CAMPUS",
+        category: "研发 / 产品",
+        keywords: ["软件研发", "产品经理", "数据分析", "智能体", "搜索"]
+      }),
+      portalJob({
+        company: "小米",
+        role: "校招岗位库：软件开发 / 嵌入式方向",
+        family: "software",
+        source: "小米校园招聘官网",
+        sourceUrl: "https://xiaomi.jobs.f.mioffice.cn/campus",
+        category: "软件 / 嵌入式",
+        keywords: ["软件开发", "嵌入式", "Android", "IoT", "系统"]
+      }),
+      portalJob({
+        company: "小米",
+        role: "校招岗位库：硬件 / 结构 / 产品方向",
+        family: "mechanical",
+        source: "小米校园招聘官网",
+        sourceUrl: "https://xiaomi.jobs.f.mioffice.cn/campus",
+        category: "硬件 / 结构 / 产品",
+        keywords: ["硬件", "结构", "机械", "产品", "消费电子"]
+      }),
+      portalJob({
+        company: "大疆",
+        role: "校招岗位库：机械结构 / 硬件方向",
+        family: "mechanical",
+        source: "DJI 大疆招聘官网",
+        sourceUrl: "https://careers.dji.com/zh-CN/campus",
+        category: "机械 / 硬件",
+        keywords: ["机械结构", "硬件", "机器人", "无人机", "材料", "测试"]
+      }),
+      portalJob({
+        company: "大疆",
+        role: "校招岗位库：算法 / 软件开发方向",
+        family: "software",
+        source: "DJI 大疆招聘官网",
+        sourceUrl: "https://careers.dji.com/zh-CN/campus",
+        category: "算法 / 软件",
+        keywords: ["算法", "C++", "视觉", "控制", "嵌入式", "软件"]
+      }),
+      portalJob({
+        company: "京东",
+        role: "校招岗位库：技术研发 / 算法方向",
+        family: "software",
+        source: "京东校园招聘官网",
+        sourceUrl: "https://campus.jd.com/",
+        category: "研发 / 算法",
+        keywords: ["研发", "算法", "供应链", "后端", "数据", "AI"]
+      }),
+      portalJob({
+        company: "京东",
+        role: "校招岗位库：产品 / 运营方向",
+        family: "product",
+        source: "京东校园招聘官网",
+        sourceUrl: "https://campus.jd.com/",
+        category: "产品 / 运营",
+        keywords: ["产品", "运营", "电商", "供应链", "数据分析"]
+      }),
+      portalJob({
+        company: "美团",
+        role: "校招岗位库：软件研发 / 算法方向",
+        family: "software",
+        source: "美团校园招聘官网",
+        sourceUrl: "https://zhaopin.meituan.com/web/campus",
+        category: "研发 / 算法",
+        keywords: ["软件研发", "算法", "后端", "数据", "机器学习"]
+      }),
+      portalJob({
+        company: "美团",
+        role: "校招岗位库：产品经理 / 运营方向",
+        family: "product",
+        source: "美团校园招聘官网",
+        sourceUrl: "https://zhaopin.meituan.com/web/campus",
+        category: "产品 / 运营",
+        keywords: ["产品经理", "运营", "本地生活", "用户增长", "数据分析"]
+      }),
+      portalJob({
+        company: "比亚迪",
+        role: "校招岗位库：机械 / 车辆 / 自动化方向",
+        family: "mechanical",
+        source: "比亚迪招聘官网",
+        sourceUrl: "https://job.byd.com/",
+        category: "机械 / 自动化",
+        keywords: ["机械", "车辆工程", "自动化", "结构", "材料", "工艺"]
+      }),
+      portalJob({
+        company: "比亚迪",
+        role: "校招岗位库：软件 / 电子电气方向",
+        family: "software",
+        source: "比亚迪招聘官网",
+        sourceUrl: "https://job.byd.com/",
+        category: "软件 / 电子电气",
+        keywords: ["软件", "电子电气", "嵌入式", "控制", "测试", "智能驾驶"]
+      })
+    ];
+
+    let currentResult = null;
+    let records = JSON.parse(localStorage.getItem("resumeAgentRecords") || "[]");
+    let verifiedJobs = [...fallbackVerifiedJobs];
+
+    function normalize(text) {
+      return (text || "").toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function containsAny(text, words) {
+      const lower = normalize(text);
+      return words.some((word) => lower.includes(word.toLowerCase()));
+    }
+
+    function resolveJobFamily(selected, text) {
+      if (selected && selected !== "auto") return selected;
+      const lower = normalize(text);
+      let best = { key: "general", score: 0 };
+      Object.entries(jobFamilies).forEach(([key, config]) => {
+        if (key === "general") return;
+        const score = (config.detect || []).reduce((sum, word) => sum + (lower.includes(word.toLowerCase()) ? 1 : 0), 0);
+        if (score > best.score) best = { key, score };
+      });
+      return best.score ? best.key : "general";
+    }
+
+    function familyConfig(family) {
+      return jobFamilies[family] || jobFamilies.general;
+    }
+
+    function skillBelongsToFamily(item, family) {
+      return item.family === family || item.family === "general" || family === "general";
+    }
+
+    function extractSkills(text, family = "general") {
+      const matched = skillMap
+        .filter((item) => skillBelongsToFamily(item, family) && containsAny(text, item.words))
+        .map((item) => item.key);
+      return [...new Set(matched)];
+    }
+
+    function extractRequirements(jd) {
+      const lines = jd.split(/\n+/)
+        .map((line) => line.replace(/^[\d一二三四五六七八九十]+[.、)]\s*/, "").trim())
+        .filter((line) => line.length > 8);
+      const picked = lines.filter((line) => /负责|要求|能力|经验|熟悉|理解|协作|指标|用户|产品|大模型|agent|智能体|数据|评估/i.test(line));
+      return (picked.length ? picked : lines).slice(0, 6);
+    }
+
+    function extractKeywords(text) {
+      const english = text.match(/[A-Za-z][A-Za-z0-9+#./-]{1,}/g) || [];
+      const chinese = text.match(/[\u4e00-\u9fa5]{2,8}/g) || [];
+      const all = [...english, ...chinese]
+        .map((word) => word.trim())
+        .filter((word) => word.length >= 2 && !cnStopwords.has(word.toLowerCase()) && !cnStopwords.has(word));
+      const counts = new Map();
+      all.forEach((word) => counts.set(word, (counts.get(word) || 0) + 1));
+      return [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([word]) => word)
+        .slice(0, 18);
+    }
+
+    function scoreResume(resume, jd, family = "general") {
+      const jdSkills = extractSkills(jd, family);
+      const resumeSkills = extractSkills(resume, family);
+      const matchedSkills = jdSkills.filter((skill) => resumeSkills.includes(skill));
+      const keywords = extractKeywords(jd);
+      const resumeLower = normalize(resume);
+      const matchedKeywords = keywords.filter((kw) => resumeLower.includes(kw.toLowerCase())).slice(0, 12);
+      const skillScore = jdSkills.length ? matchedSkills.length / jdSkills.length : 0.4;
+      const keywordScore = keywords.length ? matchedKeywords.length / Math.min(keywords.length, 12) : 0.35;
+      const projectScore = /项目|作品|demo|原型|调研|prd|竞品|agent|智能体|系统|接口|代码|github|结构|建模|工程图|样机|仿真|量产/i.test(resume) ? 0.2 : 0;
+      const raw = Math.round((skillScore * 55 + keywordScore * 30 + projectScore * 100) * 0.85);
+      const score = Math.max(28, Math.min(96, raw));
+      const gaps = jdSkills.filter((skill) => !resumeSkills.includes(skill));
+      return { score, jdSkills, resumeSkills, matchedSkills, matchedKeywords, gaps, keywords, family };
+    }
+
+    function styleFocus(style, family) {
+      if (style === "software" || family === "software") {
+        return {
+          title: "软件开发导向",
+          bullets: familyConfig("software").focus
+        };
+      }
+      if (style === "mechanical" || family === "mechanical") {
+        return {
+          title: "机械结构导向",
+          bullets: familyConfig("mechanical").focus
+        };
+      }
+      if (style === "growth") {
+        return {
+          title: "增长/运营导向",
+          bullets: familyConfig("growth").focus
+        };
+      }
+      if (style === "technical") {
+        return {
+          title: "技术产品导向",
+          bullets: familyConfig("technical").focus
+        };
+      }
+      return {
+        title: `${familyConfig(family).label}导向`,
+        bullets: familyConfig(family).focus
+      };
+    }
+
+    function firstMatch(text, patterns, fallback = "") {
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && (match[1] || match[0])) return (match[1] || match[0]).trim();
+      }
+      return fallback;
+    }
+
+    function compactList(items, limit = 3) {
+      return [...new Set(items.filter(Boolean))].slice(0, limit).join("、");
+    }
+
+    function cleanMajor(value) {
+      const text = String(value || "").replace(/^[：:\s]+/, "").trim();
+      if (!text || /绩点|gpa|成绩|排名|分数|cet|英语|证书/i.test(text)) return "";
+      return text.replace(/[，。,；;].*$/, "").slice(0, 24);
+    }
+
+    function extractProfile(resume) {
+      const name = firstMatch(resume, [
+        /(?:姓名|名字)[:：]\s*([^\s，,；;|]{2,8})/,
+        /^([一-龥]{2,4})\s*(?:\n|$)/
+      ], "候选人");
+      const years = firstMatch(resume, [
+        /([0-9一二三四五六七八九十]+年(?:以上)?(?:工作|产品|运营|项目)?经验)/,
+        /(?:工作年限|经验)[:：]\s*([^，。,；;\n]{2,16})/
+      ]);
+      const education = firstMatch(resume, [
+        /(?:毕业于|就读于)([^，。,；;\n]{2,28})/,
+        /(?:学校|院校)[:：]\s*([^，。,；;\n]{2,28})/
+      ]);
+      const major = cleanMajor(firstMatch(resume, [
+        /(?:所学专业|专业名称|专业)[:：]\s*([^，。,；;\n]{2,28})/,
+        /(?:毕业于|就读于|学校|院校)[^，。,；;\n]{2,28}?[，,、\s]([^，。,；;\n]{2,24}(?:专业|工程|科学|设计|自动化|计算机|机械|材料))/
+      ]));
+      const availability = firstMatch(resume, [
+        /(?:可|能|预计)?(?:立即|随时)到岗/,
+        /(?:到岗时间|入职时间)[:：]\s*([^，。,；;\n]{2,24})/,
+        /(?:每周|一周)(?:可)?(?:实习|到岗)?\s*([0-9一二三四五六七八九十]+天)/,
+        /(实习[0-9一二三四五六七八九十]+个月(?:以上)?|可实习[0-9一二三四五六七八九十]+个月(?:以上)?)/
+      ]);
+      const portfolio = /作品集|portfolio|demo|原型|案例|项目集/i.test(resume)
+        ? "详情可查看我的简历/作品集。"
+        : "详情可查看我的简历。";
+      return { name, years, education, major, availability, portfolio };
+    }
+
+    function profileValues() {
+      const values = Object.fromEntries(profileFieldIds.map((id) => [id, $(id).value.trim()]));
+      values.profileMajor = cleanMajor(values.profileMajor);
+      return values;
+    }
+
+    function setProfileValues(values) {
+      profileFieldIds.forEach((id) => {
+        if (values[id] !== undefined) $(id).value = id === "profileMajor" ? cleanMajor(values[id]) : (values[id] || "");
+      });
+    }
+
+    function loadProfile() {
+      try {
+        setProfileValues(JSON.parse(localStorage.getItem("resumeAgentApplyProfile") || "{}"));
+      } catch (_err) {
+        localStorage.removeItem("resumeAgentApplyProfile");
+      }
+    }
+
+    function saveProfile() {
+      localStorage.setItem("resumeAgentApplyProfile", JSON.stringify(profileValues()));
+    }
+
+    function pickSection(text, titles, maxLen = 360) {
+      const lines = text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+      const index = lines.findIndex((line) => titles.some((title) => line.includes(title)));
+      if (index < 0) return "";
+      return lines.slice(index + 1, index + 8).join("；").slice(0, maxLen);
+    }
+
+    function extractApplyProfileFromResume(options = {}) {
+      const resume = $("resume").value.trim();
+      if (!resume) {
+        if (!options.silent) alert("请先上传或粘贴基础简历。");
+        return;
+      }
+      const base = extractProfile(resume);
+      const values = profileValues();
+      const phone = firstMatch(resume, [/(1[3-9]\d{9})/]);
+      const email = firstMatch(resume, [/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/]);
+      const degree = firstMatch(resume, [/(博士|硕士|研究生|本科|大专|专科)/]);
+      const graduation = firstMatch(resume, [
+        /(?:毕业时间|毕业年份|毕业)[:：]?\s*((?:20\d{2})[-./年]?(?:0?[1-9]|1[0-2])?月?)/,
+        /((?:20\d{2})[-./年](?:0?[1-9]|1[0-2])月?)/
+      ]);
+      const city = firstMatch(resume, [
+        /(?:意向城市|期望城市|工作城市)[:：]\s*([^，。,；;\n]{2,18})/,
+        /(上海市|北京市|深圳市|广州市|杭州市|南京市|苏州市|无锡|东莞|成都|武汉|西安|合肥|长沙|重庆|天津)/
+      ]);
+      setProfileValues({
+        ...values,
+        profileName: values.profileName || (base.name === "候选人" ? "" : base.name),
+        profilePhone: values.profilePhone || phone,
+        profileEmail: values.profileEmail || email,
+        profileDegree: values.profileDegree || degree,
+        profileSchool: values.profileSchool || base.education,
+        profileMajor: values.profileMajor || base.major,
+        profileGraduation: values.profileGraduation || graduation,
+        profileCity1: values.profileCity1 || city,
+        profileTransfer: values.profileTransfer || "是",
+        profileAvailability: values.profileAvailability || base.availability,
+        profileEducation: values.profileEducation || pickSection(resume, ["教育背景", "教育经历", "学习经历"], 320),
+        profileHighSchool: values.profileHighSchool || pickSection(resume, ["高中经历", "高中", "中学"], 220),
+        profileAwards: values.profileAwards || pickSection(resume, ["获奖经历", "奖项", "荣誉", "竞赛"], 320),
+        profileCampusRoles: values.profileCampusRoles || pickSection(resume, ["在校职务", "校园经历", "学生工作", "社团"], 320),
+        profileExperience: values.profileExperience || pickSection(resume, ["实习经历", "工作经历", "实践经历", "经历"]),
+        profileProjects: values.profileProjects || pickSection(resume, ["项目经历", "项目经验", "作品", "科研经历"]),
+        profileCertificates: values.profileCertificates || pickSection(resume, ["证书", "资格证", "技能证书", "语言能力"], 260),
+        profileSummary: values.profileSummary || pickSection(resume, ["个人优势", "自我评价", "自我描述", "技能"], 260)
+      });
+      saveProfile();
+      if (!options.silent) alert("已从简历中提取并保存一版应聘信息，请检查补全。");
+    }
+
+    function autofillPayload() {
+      const values = profileValues();
+      return {
+        fields: [
+          { labels: ["姓名", "真实姓名", "中文名"], value: values.profileName },
+          { labels: ["手机号", "手机号码", "联系电话", "电话"], value: values.profilePhone },
+          { labels: ["邮箱", "电子邮箱", "邮箱地址", "Email"], value: values.profileEmail },
+          { labels: ["性别"], value: values.profileGender },
+          { labels: ["最高学历", "学历"], value: values.profileDegree },
+          { labels: ["学校", "毕业院校", "院校", "高校"], value: values.profileSchool },
+          { labels: ["专业", "所学专业"], value: values.profileMajor },
+          { labels: ["毕业时间", "毕业年份", "预计毕业时间"], value: values.profileGraduation },
+          { labels: ["意向工作城市", "第一志愿城市", "工作城市", "期望城市"], value: values.profileCity1 },
+          { labels: ["第二志愿城市", "第二意向城市"], value: values.profileCity2 },
+          { labels: ["第三志愿城市", "第三意向城市"], value: values.profileCity3 },
+          { labels: ["是否可接受工作城市调剂", "是否接受调剂", "是否服从调剂"], value: values.profileTransfer },
+          { labels: ["到岗时间", "可到岗时间", "入职时间"], value: values.profileAvailability },
+          { labels: ["作品集", "项目链接", "个人主页", "GitHub", "作品链接"], value: values.profilePortfolio },
+          { labels: ["教育背景", "教育经历", "学习经历"], value: values.profileEducation },
+          { labels: ["高中经历", "高中", "高中信息"], value: values.profileHighSchool },
+          { labels: ["获奖经历", "获奖情况", "奖项", "荣誉"], value: values.profileAwards },
+          { labels: ["在校职务", "校园经历", "学生工作", "社团经历"], value: values.profileCampusRoles },
+          { labels: ["实习经历", "工作经历", "实践经历"], value: values.profileExperience },
+          { labels: ["项目经历", "项目经验", "项目介绍"], value: values.profileProjects },
+          { labels: ["证书", "资格证书", "技能证书", "语言证书"], value: values.profileCertificates },
+          { labels: ["自我描述", "自我评价", "个人优势", "自我介绍"], value: values.profileSummary }
+        ].filter((field) => field.value),
+        confirmTexts: [
+          "我已确认",
+          "本人承诺",
+          "我已阅读",
+          "同意",
+          "确认第一、第二三志愿城市未重复选择且均为岗位在招城市"
+        ],
+        resumeFileName: values.profileResumeFileName
+      };
+    }
+
+    function buildAutofillScript() {
+      const payload = autofillPayload();
+      return `(() => {
+  const payload = ${JSON.stringify(payload, null, 2)};
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const visible = (el) => !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+  const norm = (text) => String(text || "").replace(/\\s+/g, "").replace(/[：:*]/g, "").toLowerCase();
+  const fire = (el) => {
+    ["input", "change", "blur"].forEach((type) => el.dispatchEvent(new Event(type, { bubbles: true })));
+  };
+  const setNativeValue = (el, value) => {
+    const proto = el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+    setter ? setter.call(el, value) : (el.value = value);
+    fire(el);
+  };
+  const controls = () => [...document.querySelectorAll("input:not([type=hidden]):not([type=file]), textarea, [contenteditable=true], [role=combobox], .ant-select-selector, .el-select, .select")]
+    .filter((el) => visible(el) && !el.disabled && !el.readOnly);
+  const rectDistance = (a, b) => {
+    const ar = a.getBoundingClientRect();
+    const br = b.getBoundingClientRect();
+    const dy = Math.max(0, br.top - ar.bottom);
+    const dx = Math.abs(br.left - ar.left);
+    return dy * 4 + dx + Math.abs(br.top - ar.top);
+  };
+  const textNodes = () => [...document.querySelectorAll("label, span, p, div, dt, th")]
+    .filter((node) => visible(node) && (node.childElementCount <= 3) && (node.innerText || "").trim().length <= 40);
+  const labelNode = (labels) => {
+    const keys = labels.map(norm).filter(Boolean);
+    const exact = textNodes().find((node) => keys.some((key) => norm(node.innerText) === key));
+    if (exact) return exact;
+    return textNodes().find((node) => {
+      const text = norm(node.innerText || node.textContent || "");
+      return keys.some((key) => text.includes(key));
+    });
+  };
+  const containers = () => [...document.querySelectorAll("label, .form-item, .ant-form-item, .el-form-item, .mokahr-form-item, [class*=form], [class*=item], div")]
+    .filter(visible);
+  const findContainer = (labels) => {
+    const label = labelNode(labels);
+    if (label) {
+      const closest = label.closest("label, .form-item, .ant-form-item, .el-form-item, .mokahr-form-item, [class*=form], [class*=item]") || label.parentElement;
+      if (closest) return closest;
+    }
+    const keys = labels.map(norm).filter(Boolean);
+    return containers().sort((a, b) => (a.innerText || "").length - (b.innerText || "").length).find((node) => {
+      const text = norm(node.innerText || node.textContent || "");
+      return keys.some((key) => text.includes(key));
+    });
+  };
+  const fieldIn = (container, labels) => {
+    const label = labelNode(labels);
+    if (label) {
+      const inLabel = label.matches("label") ? [...label.querySelectorAll("input:not([type=hidden]):not([type=file]), textarea, [contenteditable=true]")].find(visible) : null;
+      if (inLabel) return inLabel;
+      const after = controls()
+        .filter((el) => {
+          const lr = label.getBoundingClientRect();
+          const er = el.getBoundingClientRect();
+          return er.top >= lr.top - 8 && er.left >= lr.left - 20;
+        })
+        .sort((a, b) => rectDistance(label, a) - rectDistance(label, b))[0];
+      if (after) return after;
+    }
+    if (!container) return null;
+    return [...container.querySelectorAll("input:not([type=hidden]):not([type=file]), textarea, [contenteditable=true]")]
+      .filter((el) => visible(el) && !el.disabled && !el.readOnly)
+      .sort((a, b) => rectDistance(container, a) - rectDistance(container, b))[0];
+  };
+  const optionNodes = () => [...document.querySelectorAll("[role=option], .ant-select-item-option, .el-select-dropdown__item, li, div")]
+    .filter((el) => visible(el) && (el.innerText || "").trim().length < 60);
+  const clickOption = async (value) => {
+    const target = optionNodes().find((el) => norm(el.innerText).includes(norm(value)) || norm(value).includes(norm(el.innerText)));
+    if (target) {
+      target.click();
+      await sleep(120);
+      return true;
+    }
+    return false;
+  };
+  const fillOne = async (field) => {
+    const container = findContainer(field.labels);
+    if (!container) return { label: field.labels[0], ok: false, reason: "未找到字段" };
+    const direct = fieldIn(container, field.labels);
+    if (direct) {
+      if (direct.isContentEditable) {
+        direct.textContent = field.value;
+        fire(direct);
+      } else {
+        setNativeValue(direct, field.value);
+      }
+      return { label: field.labels[0], ok: true, reason: "已填写输入框" };
+    }
+    const clickable = [...container.querySelectorAll("[role=combobox], .ant-select-selector, .el-select, .select, input")]
+      .find(visible) || container;
+    clickable.click();
+    await sleep(200);
+    if (await clickOption(field.value)) return { label: field.labels[0], ok: true, reason: "已选择下拉项" };
+    const active = document.activeElement;
+    if (active && /input|textarea/i.test(active.tagName)) {
+      setNativeValue(active, field.value);
+      await sleep(200);
+      if (await clickOption(field.value)) return { label: field.labels[0], ok: true, reason: "已搜索并选择" };
+    }
+    return { label: field.labels[0], ok: false, reason: "找到字段但无法自动写入，需手动处理" };
+  };
+  const checkConfirmations = () => {
+    const checked = [];
+    payload.confirmTexts.forEach((text) => {
+      const container = findContainer([text]);
+      const box = container && [...container.querySelectorAll("input[type=checkbox], .ant-checkbox-input, .el-checkbox__original")]
+        .find((el) => !el.checked && !el.disabled);
+      if (box) {
+        box.click();
+        checked.push(text);
+      }
+    });
+    return checked;
+  };
+  const markResumeUpload = () => {
+    const upload = [...document.querySelectorAll("input[type=file]")].find(visible);
+    return upload
+      ? "检测到简历上传控件。浏览器安全限制下脚本不能直接选择本地文件，请手动上传：" + (payload.resumeFileName || "你的简历文件")
+      : "未检测到可见文件上传控件；如果页面有上传入口，请手动上传简历。";
+  };
+  (async () => {
+    const results = [];
+    for (const field of payload.fields) results.push(await fillOne(field));
+    const checked = checkConfirmations();
+    const uploadTip = markResumeUpload();
+    const panel = document.createElement("div");
+    panel.style.cssText = "position:fixed;right:16px;top:16px;z-index:999999;max-width:380px;max-height:70vh;overflow:auto;background:#fff;border:1px solid #dbe3ee;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.16);padding:14px;font:13px/1.6 Microsoft YaHei,Arial;color:#142033";
+    panel.innerHTML = "<b>半自动填表完成，请人工检查后再提交</b><br>" +
+      results.map((r) => (r.ok ? "✅ " : "⚠️ ") + r.label + "：" + r.reason).join("<br>") +
+      "<br>☑️ 勾选确认项：" + (checked.length ? checked.join("、") : "无/未找到") +
+      "<br>📎 " + uploadTip +
+      "<br><button style='margin-top:8px;padding:6px 10px'>关闭</button>";
+    panel.querySelector("button").onclick = () => panel.remove();
+    document.body.appendChild(panel);
+    console.table(results);
+    console.log(uploadTip);
+    console.log("未自动点击提交按钮，请确认所有信息后手动提交。");
+  })();
+})();`;
+    }
+
+    function generateAutofillScript() {
+      saveProfile();
+      $("autofillScript").value = buildAutofillScript();
+    }
+
+    function buildResult() {
+      const resume = $("resume").value.trim();
+      const jd = $("jd").value.trim();
+      const company = $("company").value.trim() || "目标公司";
+      const role = $("role").value.trim() || "目标岗位";
+      const style = $("style").value;
+      const family = resolveJobFamily($("jobFamily").value, `${role}\n${jd}\n${resume}`);
+      const config = familyConfig(family);
+
+      if (!resume || !jd) {
+        alert("请先输入基础简历和岗位 JD。");
+        return null;
+      }
+
+      const scoring = scoreResume(resume, jd, family);
+      const requirements = extractRequirements(jd);
+      const focus = styleFocus(style, family);
+      const level = scoring.score >= 78 ? "高匹配，可以优先投递" : scoring.score >= 60 ? "中等匹配，建议补强后投递" : "匹配偏弱，建议谨慎投递";
+      const reason = scoring.matchedSkills.length
+        ? `系统识别为${config.label}方向，已命中 ${scoring.matchedSkills.join("、")} 等能力。`
+        : `系统识别为${config.label}方向，但 JD 中的核心能力与简历表达重合较少，需要补充更直接的项目证据。`;
+
+      const suggestions = [
+        `把简历开头改成“${role}候选人”，第一段直接对应 JD 里的核心职责。`,
+        scoring.gaps.length ? `补充或强化这些能力证据：${scoring.gaps.join("、")}。` : "当前关键能力覆盖较完整，建议把项目结果量化。",
+        ...config.projectGuide.slice(0, 2),
+        "保留真实经历，不建议为了匹配 JD 编造不存在的项目。"
+      ];
+
+      const highlighted = resume
+        .split("\n")
+        .map((line) => {
+          let out = line;
+          scoring.matchedKeywords.slice(0, 8).forEach((kw) => {
+            if (!kw || kw.length < 2) return;
+            const safe = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            out = out.replace(new RegExp(safe, "gi"), (m) => `<mark>${m}</mark>`);
+          });
+          return out;
+        })
+        .join("\n");
+
+      const decisionLabel = scoring.score >= 78 ? "建议优先投递" : scoring.score >= 60 ? "可投递，建议先补齐信息" : "谨慎投递";
+      const tailoredResume = `【${company}｜${role}｜投递决策报告】
+
+投递结论：
+${decisionLabel}。系统识别为${config.label}方向，当前简历与 JD 的匹配度为 ${scoring.score}%。${reason}
+
+已命中的岗位证据：
+${(scoring.matchedSkills.length ? scoring.matchedSkills : scoring.resumeSkills.length ? scoring.resumeSkills : config.fallbackSkills).slice(0, 6).map((skill) => `- ${skill}`).join("\n")}
+
+投递前需要确认/补齐：
+${scoring.gaps.length ? scoring.gaps.map((gap) => `- ${gap}：简历中暂未明显体现，投递前确认是否真实具备。`).join("\n") : "- 关键能力覆盖较完整，重点检查姓名、手机号、邮箱、城市、教育经历、项目经历等官网申请字段是否完整。"}
+
+官网填表准备：
+- 进入“官网填表”，检查个人档案是否完整。
+- 若官网已有简历上传入口，请手动确认简历文件已上传成功。
+- 运行填表脚本后，只做人工确认提交，不自动批量海投。
+
+简历原文命中参考：
+${highlighted}`;
+
+      const proofPoints = [
+        scoring.matchedSkills[0] || config.fallbackSkills[0],
+        scoring.matchedSkills[1] || config.fallbackSkills[1],
+        scoring.matchedSkills[2] || config.fallbackSkills[2]
+      ];
+      const jdSignal = requirements[0] || scoring.matchedKeywords[0] || config.label;
+      const profile = extractProfile(resume);
+      const skillText = compactList(scoring.matchedSkills.length ? scoring.matchedSkills : proofPoints, 3);
+      const keywordText = compactList(scoring.matchedKeywords.length ? scoring.matchedKeywords : [jdSignal], 2);
+      const background = compactList([profile.years, profile.education, profile.major], 2);
+      const availabilityText = profile.availability ? `${profile.availability}，` : "可根据团队安排沟通到岗时间，";
+      const backgroundText = background ? `${background}，` : "";
+      const greeting = `您好，我是${profile.name}，想沟通${company === "目标公司" ? "" : company + "的"}${role}岗位。${availabilityText}${backgroundText}具备${skillText}等岗位相关能力，曾做过${keywordText || "相关"}项目/工作，熟悉${jdSignal}。${profile.portfolio}希望与您进一步沟通，期待您的回复！`;
+
+      const advice = scoring.score >= 78
+        ? `建议优先投递。投递前检查官网申请字段和简历上传状态，确认无误后提交。`
+        : scoring.score >= 60
+          ? "可以投递，但建议先确认缺口能力是否真实具备，并补全官网申请信息。"
+          : "建议谨慎投递。当前简历与岗位要求重合不足，除非你确认有相关经历但简历未体现。";
+
+      return {
+        company,
+        role,
+        score: scoring.score,
+        level,
+        reason,
+        requirements,
+        suggestions,
+        matchedSkills: scoring.matchedSkills,
+        matchedKeywords: scoring.matchedKeywords,
+        gaps: scoring.gaps,
+        family,
+        focus,
+        tailoredResume,
+        greeting,
+        advice,
+        createdAt: new Date().toLocaleString()
+      };
+    }
+
+    function normalizeModelResult(result) {
+      const fallback = buildResult();
+      if (!fallback) return result;
+      return {
+        ...fallback,
+        ...result,
+        score: Number.isFinite(Number(result.score)) ? Math.max(0, Math.min(100, Math.round(Number(result.score)))) : fallback.score,
+        requirements: Array.isArray(result.requirements) ? result.requirements : fallback.requirements,
+        suggestions: Array.isArray(result.suggestions) ? result.suggestions : fallback.suggestions,
+        matchedSkills: Array.isArray(result.matchedSkills) ? result.matchedSkills : fallback.matchedSkills,
+        matchedKeywords: Array.isArray(result.matchedKeywords) ? result.matchedKeywords : fallback.matchedKeywords,
+        gaps: Array.isArray(result.gaps) ? result.gaps : fallback.gaps,
+        focus: result.focus && Array.isArray(result.focus.bullets) ? result.focus : fallback.focus
+      };
+    }
+
+    async function callModelBackend() {
+      const resume = $("resume").value.trim();
+      const jd = $("jd").value.trim();
+      if (!resume || !jd) {
+        alert("请先输入基础简历和岗位 JD。");
+        return null;
+      }
+
+      const response = await fetch(`${API_BASE}/api/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resume,
+          jd,
+          company: $("company").value.trim(),
+          role: $("role").value.trim(),
+          jobFamily: resolveJobFamily($("jobFamily").value, `${$("role").value}\n${jd}\n${resume}`),
+          style: $("style").value
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `模型后端请求失败：${response.status}`);
+      }
+      return normalizeModelResult(data.result);
+    }
+
+    async function uploadFile(endpoint, file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `上传失败：${response.status}`);
+      }
+      return data;
+    }
+
+    async function refreshBackendStatus() {
+      try {
+        const response = await fetch(`${API_BASE}/health`);
+        const data = await response.json();
+        $("backendStatus").innerHTML = data.hasApiKey
+          ? `<span class="status-line"><span class="status-dot"></span>模型后端在线：<strong>${escapeHtml(data.model || "unknown")}</strong></span>`
+          : `<span class="status-line"><span class="status-dot" style="background:var(--amber);box-shadow:0 0 0 4px rgba(184,104,0,.12)"></span>后端已启动，待配置 API Key</span>`;
+      } catch (_err) {
+        $("backendStatus").innerHTML = `<span class="status-line"><span class="status-dot" style="background:var(--red);box-shadow:0 0 0 4px rgba(194,65,61,.12)"></span>后端未连接，当前使用本地规则版</span>`;
+      }
+    }
+
+    function renderResult(result) {
+      currentResult = result;
+      $("empty").classList.add("hidden");
+      document.querySelectorAll(".tabpane").forEach((pane) => pane.classList.add("hidden"));
+      $(document.querySelector(".tab.active").dataset.tab).classList.remove("hidden");
+
+      const deg = Math.round(result.score * 3.6);
+      $("scoreRing").style.background = `conic-gradient(var(--blue) ${deg}deg, #e9eef6 ${deg}deg)`;
+      $("scoreText").textContent = `${result.score}%`;
+      $("scoreLevel").textContent = result.level;
+      $("scoreReason").textContent = result.reason;
+
+      $("keywords").innerHTML = [
+        ...result.matchedSkills.map((item) => `<span class="pill good">${item}</span>`),
+        ...result.matchedKeywords.map((item) => `<span class="pill">${item}</span>`)
+      ].join("") || `<span class="pill warn">暂无明显命中</span>`;
+
+      $("gaps").innerHTML = result.gaps.length
+        ? result.gaps.map((item) => `<span class="pill warn">${item}</span>`).join("")
+        : `<span class="pill good">核心能力覆盖较完整</span>`;
+
+      $("requirements").innerHTML = result.requirements.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+      $("suggestions").innerHTML = [
+        ...result.focus.bullets,
+        ...result.suggestions
+      ].map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+      $("applyAdvice").textContent = result.advice;
+      $("tailoredResume").innerHTML = result.tailoredResume;
+      $("greeting").textContent = result.greeting;
+      renderRecords();
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function renderRecords() {
+      const rows = records.map((record, index) => `
+        <tr>
+          <td>${escapeHtml(record.company)}</td>
+          <td>${escapeHtml(record.role)}</td>
+          <td>${record.score}%</td>
+          <td>${escapeHtml((record.matchedSkills || []).slice(0, 4).join("、") || "待补充")}</td>
+          <td>
+            <select data-index="${index}" class="statusSelect">
+              ${["待确认", "已投递", "待跟进", "约面试", "不合适"].map((s) => `<option ${record.status === s ? "selected" : ""}>${s}</option>`).join("")}
+            </select>
+          </td>
+          <td>${escapeHtml(record.nextStep || record.advice || "")}</td>
+        </tr>
+      `).join("");
+      $("trackerBody").innerHTML = rows || `<tr><td colspan="6" class="small">暂无记录。完成岗位分析后点击“保存记录”。</td></tr>`;
+      document.querySelectorAll(".statusSelect").forEach((select) => {
+        select.addEventListener("change", (event) => {
+          const index = Number(event.target.dataset.index);
+          records[index].status = event.target.value;
+          saveRecords();
+        });
+      });
+    }
+
+    function recommendationContext() {
+      const resume = $("resume").value.trim();
+      const jd = $("jd").value.trim();
+      const role = $("role").value.trim();
+      const selected = $("jobFamily").value;
+      const family = resolveJobFamily(selected, `${role}\n${jd}\n${resume}`);
+      return {
+        text: normalize(`${resume}\n${jd}\n${role}`),
+        family,
+        hasInput: Boolean(resume || jd || role)
+      };
+    }
+
+    function scoreVerifiedJob(job, context = recommendationContext()) {
+      let score = job.verificationLevel === "open" ? 58 : 42;
+      if (job.family === context.family) score += 24;
+      if (context.family === "general") score += 8;
+      const keywordHits = (job.keywords || []).filter((keyword) => context.text.includes(String(keyword).toLowerCase()));
+      score += Math.min(18, keywordHits.length * 6);
+      if (context.text.includes(normalize(job.role))) score += 12;
+      if (!context.hasInput && job.verificationLevel === "open") score += 8;
+      return Math.max(20, Math.min(98, score));
+    }
+
+    function recommendationReason(job, score) {
+      const source = job.verificationLevel === "open"
+        ? "该岗位已从官方校招页面核验为 open，可以优先打开官网确认并投递。"
+        : job.verificationLevel === "official-page"
+          ? "该岗位来自企业校招官方申请页，可打开官网核对详情后投递。"
+          : "这是官方校招岗位库入口，需进入官网站内搜索并确认具体岗位仍可投递。";
+      const keywords = compactList(job.keywords || [], 4);
+      return `匹配度 ${score}%：${source}${keywords ? ` 关联方向：${keywords}。` : ""}`;
+    }
+
+    function filteredRecommendedJobs() {
+      const query = normalize($("jobSearch") ? $("jobSearch").value : "");
+      const context = recommendationContext();
+      return verifiedJobs
+        .map((job) => ({ ...job, matchScore: scoreVerifiedJob(job, context) }))
+        .filter((job) => {
+          if (!query) return true;
+          return normalize(`${job.company} ${job.role} ${job.city} ${job.category} ${(job.keywords || []).join(" ")}`).includes(query);
+        })
+        .sort((a, b) => b.matchScore - a.matchScore || (a.verificationLevel === "open" ? -1 : 1));
+    }
+
+    function companyInitial(company) {
+      const cleaned = String(company || "企业").replace(/\s+/g, "");
+      return cleaned.slice(0, 2) || "企业";
+    }
+
+    function latestVerifiedAt(jobs) {
+      return jobs
+        .map((job) => job.verifiedAt)
+        .filter(Boolean)
+        .sort()
+        .pop() || "待刷新";
+    }
+
+    function groupRecommendedJobs(jobs) {
+      const map = new Map();
+      jobs.forEach((job, index) => {
+        const company = job.company || "未命名企业";
+        if (!map.has(company)) map.set(company, []);
+        map.get(company).push({ job, index });
+      });
+      return [...map.entries()]
+        .map(([company, entries]) => ({
+          company,
+          entries,
+          bestScore: Math.max(...entries.map((entry) => entry.job.matchScore || 0)),
+          openCount: entries.filter((entry) => entry.job.verificationLevel === "open").length,
+          portalCount: entries.filter((entry) => entry.job.verificationLevel === "portal").length
+        }))
+        .sort((a, b) => b.bestScore - a.bestScore || b.openCount - a.openCount || a.company.localeCompare(b.company, "zh-CN"));
+    }
+
+    function renderRecommendedJobCard(entry) {
+      const { job, index } = entry;
+      const statusClass = job.verificationLevel === "open" ? "good" : "warn";
+      const linkText = job.verificationLevel === "portal" ? "打开岗位库" : "打开校招官网";
+      return `
+        <article class="job-card">
+          <div class="job-title-row">
+            <div>
+              <h3>${escapeHtml(job.role)}</h3>
+              <div class="pill-row">
+                <span class="pill ${statusClass}">${escapeHtml(job.status)}</span>
+                <span class="pill">${escapeHtml(job.family ? familyConfig(job.family).label : "通用岗位")}</span>
+                <span class="pill">${escapeHtml(job.category || "详见官网")}</span>
+              </div>
+            </div>
+            <div class="job-match">${job.matchScore}%</div>
+          </div>
+          <div class="job-meta">
+            <span><strong>城市：</strong>${escapeHtml(job.city || "详见官网")}</span>
+            <span><strong>对象：</strong>${escapeHtml(job.target || "详见官网")}</span>
+            <span><strong>来源：</strong>${escapeHtml(job.source)}｜核验：${escapeHtml(job.verifiedAt || "待刷新")}</span>
+            <span><strong>证据：</strong>${escapeHtml(job.verification || "")}</span>
+          </div>
+          <div class="job-reason">${escapeHtml(recommendationReason(job, job.matchScore))}</div>
+          <div class="job-card-actions">
+            <a class="primary-link" href="${escapeHtml(job.url)}" target="_blank" rel="noopener">${linkText}</a>
+            <button data-job-index="${index}" class="useJobBtn">带入岗位分析</button>
+            <button data-job-index="${index}" class="copyJobBtn">复制链接</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderJobRecommendations() {
+      const jobs = filteredRecommendedJobs();
+      const groups = groupRecommendedJobs(jobs);
+      const openCount = verifiedJobs.filter((job) => job.verificationLevel === "open").length;
+      const portalCount = verifiedJobs.filter((job) => job.verificationLevel === "portal").length;
+      const companyCount = new Set(verifiedJobs.map((job) => job.company)).size;
+      $("jobVerifyStatus").textContent = `当前推荐池 ${verifiedJobs.length} 个岗位/入口，覆盖 ${companyCount} 家企业；${openCount} 个为官方结构化数据已核验在招，${portalCount} 个为官方岗位库入口。核验时间：${latestVerifiedAt(verifiedJobs)}`;
+      $("jobRecommendations").innerHTML = groups.map((group) => {
+        const categories = compactList([...new Set(group.entries.map((entry) => entry.job.category).filter(Boolean))], 3);
+        return `
+          <section class="company-group">
+            <div class="company-group-head">
+              <div class="company-title">
+                <span class="company-logo">${escapeHtml(companyInitial(group.company))}</span>
+                <div>
+                  <h3>${escapeHtml(group.company)}</h3>
+                  <p>${escapeHtml(categories || "岗位方向以官网为准")}｜来源优先使用企业官方校招入口</p>
+                </div>
+              </div>
+              <div class="company-stats">
+                <span class="company-stat">${group.entries.length} 个入口</span>
+                <span class="company-stat">最佳匹配 ${group.bestScore}%</span>
+                <span class="company-stat">${group.openCount} 个已核验在招</span>
+                <span class="company-stat">${group.portalCount} 个岗位库入口</span>
+              </div>
+            </div>
+            <div class="company-jobs">
+              ${group.entries.map(renderRecommendedJobCard).join("")}
+            </div>
+          </section>
+        `;
+      }).join("") || `<div class="note danger">没有匹配到岗位。可以换一个关键词，或点击“刷新官方岗位”。</div>`;
+
+      document.querySelectorAll(".useJobBtn").forEach((button) => {
+        button.addEventListener("click", () => {
+          const job = jobs[Number(button.dataset.jobIndex)];
+          if (!job) return;
+          $("company").value = job.company;
+          $("role").value = job.role;
+          $("jobFamily").value = job.family || "auto";
+          $("jd").value = `岗位：${job.role}
+公司：${job.company}
+岗位状态：${job.status}
+工作城市：${job.city || "详见官网"}
+招聘对象：${job.target || "详见官网"}
+岗位类别：${job.category || "详见官网"}
+官方链接：${job.url}
+核验证据：${job.verification || "详见官网"}
+
+请打开官方链接查看完整 JD，并在左侧补充 JD 详情后再进行最终匹配分析。`;
+          alert("已带入公司、岗位和核验信息。建议打开官网补充完整 JD 后再点“分析岗位”。");
+        });
+      });
+
+      document.querySelectorAll(".copyJobBtn").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const job = jobs[Number(button.dataset.jobIndex)];
+          if (!job) return;
+          const text = `${job.company}｜${job.role}\n${job.url}\n状态：${job.status}\n核验：${job.verification || ""}`;
+          await navigator.clipboard.writeText(text);
+          alert("已复制岗位链接和核验信息。");
+        });
+      });
+    }
+
+    async function refreshVerifiedJobs() {
+      const button = $("refreshJobsBtn");
+      button.disabled = true;
+      button.textContent = "核验中...";
+      try {
+        const response = await fetch(`${API_BASE}/api/verified-jobs`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `核验失败：${response.status}`);
+        if (Array.isArray(data.jobs) && data.jobs.length) {
+          const portals = fallbackVerifiedJobs.filter((job) => job.verificationLevel === "portal");
+          const manual = fallbackVerifiedJobs.filter((job) => job.verificationLevel === "official-page");
+          verifiedJobs = [...data.jobs, ...manual, ...portals];
+          $("jobVerifyStatus").textContent = `已从官方页面刷新 ${data.jobs.length} 个 open 岗位；官网总岗位数：${data.officialTotal || "详见官网"}。`;
+        }
+      } catch (err) {
+        $("jobVerifyStatus").textContent = `实时核验失败，已使用本地已核验备份：${err.message || String(err)}`;
+      } finally {
+        button.disabled = false;
+        button.textContent = "刷新官方岗位";
+        renderJobRecommendations();
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem("resumeAgentRecords", JSON.stringify(records));
+    }
+
+    function currentTabText() {
+      const active = document.querySelector(".tab.active").dataset.tab;
+      if (active === "recommend") {
+        return groupRecommendedJobs(filteredRecommendedJobs())
+          .map((group) => {
+            const rows = group.entries.map(({ job }) => (
+              `${job.company},${job.role},${job.status},${job.matchScore}%,${job.url},${job.verification || ""}`
+            ));
+            return [`# ${group.company}`, ...rows].join("\n");
+          })
+          .join("\n\n");
+      }
+      if (!currentResult) return "";
+      if (active === "analysis") {
+        return `匹配度：${currentResult.score}%\n${currentResult.level}\n\n命中：${currentResult.matchedSkills.join("、")}\n缺口：${currentResult.gaps.join("、")}\n\n建议：\n${currentResult.suggestions.join("\n")}`;
+      }
+      if (active === "resumeTab") return currentResult.tailoredResume.replace(/<[^>]+>/g, "");
+      if (active === "letter") return currentResult.greeting;
+      return records.map((r) => `${r.company},${r.role},${r.score}%,${r.status},${r.nextStep || r.advice || ""}`).join("\n");
+    }
+
+    function exportCsv() {
+      const header = ["公司", "岗位", "匹配度", "核心亮点", "状态", "下一步"];
+      const rows = records.map((r) => [
+        r.company,
+        r.role,
+        `${r.score}%`,
+        (r.matchedSkills || []).join("、"),
+        r.status || "待确认",
+        r.nextStep || r.advice || ""
+      ]);
+      const csv = [header, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "投递追踪表.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    $("runBtn").addEventListener("click", async () => {
+      const btn = $("runBtn");
+      btn.disabled = true;
+        btn.textContent = "分析中...";
+      try {
+        const result = await callModelBackend();
+        if (result) {
+          renderResult(result);
+          $("backendStatus").innerHTML = `<span class="status-line"><span class="status-dot"></span>模型生成完成，请人工核对后投递</span>`;
+        }
+      } catch (err) {
+        const result = buildResult();
+        if (result) {
+          renderResult(result);
+          $("backendStatus").innerHTML = `<span class="status-line"><span class="status-dot" style="background:var(--amber);box-shadow:0 0 0 4px rgba(184,104,0,.12)"></span>已回退本地规则版：${escapeHtml(err.message || String(err))}</span>`;
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "分析岗位";
+      }
+    });
+
+    $("sampleBtn").addEventListener("click", () => {
+      $("resume").value = sampleResume;
+      $("company").value = "某大厂";
+      $("role").value = "AI产品经理 - Agent方向";
+      $("jd").value = sampleJd;
+      $("jobFamily").value = "auto";
+      $("style").value = "pm";
+    });
+
+    async function handleResumeFile(file) {
+      if (!file) return;
+      $("resumeFileStatus").textContent = `正在解析：${file.name} ...`;
+      try {
+        const data = await uploadFile("/api/extract-resume", file);
+        $("resume").value = data.text || "";
+        extractApplyProfileFromResume({ silent: true });
+        $("resumeFileStatus").textContent = `已提取 ${data.chars || $("resume").value.length} 个字符：${data.filename || file.name}`;
+      } catch (err) {
+        $("resumeFileStatus").textContent = `解析失败：${err.message || String(err)}`;
+      }
+    }
+
+    async function handleJdImageFile(file) {
+      if (!file) return;
+      $("jdImageStatus").textContent = `正在识别岗位截图：${file.name} ...`;
+      try {
+        const data = await uploadFile("/api/ocr-jd", file);
+        $("jd").value = data.jdText || "";
+        if (data.company && !$("company").value.trim()) $("company").value = data.company;
+        if (data.role && !$("role").value.trim()) $("role").value = data.role;
+        const confidence = typeof data.confidence === "number" ? `，置信度 ${Math.round(data.confidence * 100)}%` : "";
+        const warnings = Array.isArray(data.warnings) && data.warnings.length ? `；提醒：${data.warnings.join("；")}` : "";
+        $("jdImageStatus").textContent = `识别完成：${data.filename || file.name}${confidence}${warnings}`;
+      } catch (err) {
+        $("jdImageStatus").textContent = `识别失败：${err.message || String(err)}`;
+      }
+    }
+
+    function isResumeFile(file) {
+      const name = (file.name || "").toLowerCase();
+      return /\.(txt|md|markdown|docx|pdf|csv)$/.test(name);
+    }
+
+    function isJdImageFile(file) {
+      return /^image\/(png|jpeg|webp)$/.test(file.type || "");
+    }
+
+    function setupDropzone(zone, options) {
+      zone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        zone.classList.add("dragover");
+      });
+      zone.addEventListener("dragleave", () => {
+        zone.classList.remove("dragover");
+      });
+      zone.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        zone.classList.remove("dragover");
+        const files = [...(event.dataTransfer.files || [])];
+        const file = files.find(options.accept);
+        if (!file) {
+          options.status.textContent = options.emptyMessage;
+          return;
+        }
+        await options.handle(file);
+      });
+      zone.addEventListener("paste", async (event) => {
+        const files = [...(event.clipboardData.files || [])];
+        const file = files.find(options.accept);
+        if (!file) return;
+        event.preventDefault();
+        await options.handle(file);
+      });
+    }
+
+    $("resumeFile").addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      try {
+        await handleResumeFile(file);
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    $("jdImage").addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      try {
+        await handleJdImageFile(file);
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    setupDropzone($("resumeDropzone"), {
+      accept: isResumeFile,
+      handle: handleResumeFile,
+      status: $("resumeFileStatus"),
+      emptyMessage: "没有识别到可用简历文件。请从微信拖入 txt / md / docx / pdf，或复制简历文字到输入框。"
+    });
+
+    setupDropzone($("jdDropzone"), {
+      accept: isJdImageFile,
+      handle: handleJdImageFile,
+      status: $("jdImageStatus"),
+      emptyMessage: "没有识别到可用岗位截图。请从微信拖入/粘贴 png / jpg / webp 图片，或直接复制 JD 文本。"
+    });
+
+    $("clearBtn").addEventListener("click", () => {
+      if (!confirm("确认清空输入内容？")) return;
+      ["resume", "company", "role", "jd"].forEach((id) => $(id).value = "");
+      currentResult = null;
+      $("empty").classList.remove("hidden");
+      document.querySelectorAll(".tabpane").forEach((pane) => pane.classList.add("hidden"));
+    });
+
+    $("saveBtn").addEventListener("click", () => {
+      if (!currentResult) {
+        alert("请先完成岗位分析。");
+        return;
+      }
+      records.unshift({
+        ...currentResult,
+        status: "待确认",
+        nextStep: currentResult.score >= 60 ? "检查申请信息和简历上传后投递" : "确认岗位匹配度后再决定是否投递"
+      });
+      records = records.slice(0, 80);
+      saveRecords();
+      renderRecords();
+      alert("已保存到本地投递追踪表。");
+    });
+
+    $("copyBtn").addEventListener("click", async () => {
+      const text = currentTabText();
+      if (!text) {
+        alert("暂无可复制内容。");
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      alert("已复制当前结果。");
+    });
+
+    $("exportBtn").addEventListener("click", exportCsv);
+
+    $("quickAutofillBtn").addEventListener("click", async () => {
+      extractApplyProfileFromResume();
+      generateAutofillScript();
+      try {
+        await navigator.clipboard.writeText($("autofillScript").value);
+        alert("已从简历提取并复制填表脚本。到官网申请页 Console 粘贴运行即可。");
+      } catch (_err) {
+        $("autofillScript").select();
+        document.execCommand("copy");
+        alert("已生成脚本，请手动复制脚本输出框内容。");
+      }
+    });
+
+    $("extractProfileBtn").addEventListener("click", extractApplyProfileFromResume);
+
+    $("saveProfileBtn").addEventListener("click", () => {
+      saveProfile();
+      alert("应聘信息档案已保存到本地浏览器。");
+    });
+
+    $("generateAutofillBtn").addEventListener("click", generateAutofillScript);
+
+    $("copyAutofillBtn").addEventListener("click", async () => {
+      if (!$("autofillScript").value.trim()) generateAutofillScript();
+      try {
+        await navigator.clipboard.writeText($("autofillScript").value);
+        alert("填表脚本已复制。到校招官网页面打开开发者工具 Console 粘贴运行。");
+      } catch (_err) {
+        $("autofillScript").select();
+        document.execCommand("copy");
+        alert("填表脚本已复制。");
+      }
+    });
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        if (!currentResult && !["tracker", "autofill", "recommend"].includes(tab.dataset.tab)) {
+          $("empty").classList.remove("hidden");
+          document.querySelectorAll(".tabpane").forEach((pane) => pane.classList.add("hidden"));
+          return;
+        }
+        $("empty").classList.add("hidden");
+        document.querySelectorAll(".tabpane").forEach((pane) => pane.classList.add("hidden"));
+        $(tab.dataset.tab).classList.remove("hidden");
+        if (tab.dataset.tab === "tracker") renderRecords();
+        if (tab.dataset.tab === "autofill" && !$("autofillScript").value.trim()) generateAutofillScript();
+        if (tab.dataset.tab === "recommend") renderJobRecommendations();
+      });
+    });
+
+    $("refreshJobsBtn").addEventListener("click", refreshVerifiedJobs);
+    $("jobSearch").addEventListener("input", renderJobRecommendations);
+    ["resume", "jd", "role", "jobFamily"].forEach((id) => {
+      $(id).addEventListener("input", () => {
+        if (!$(id)) return;
+        if (!document.getElementById("recommend").classList.contains("hidden")) renderJobRecommendations();
+      });
+      if ($(id).tagName === "SELECT") {
+        $(id).addEventListener("change", () => {
+          if (!document.getElementById("recommend").classList.contains("hidden")) renderJobRecommendations();
+        });
+      }
+    });
+
+    loadProfile();
+    renderRecords();
+    renderJobRecommendations();
+    refreshBackendStatus();
+  </script>
+</body>
+</html>
