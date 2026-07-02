@@ -1230,7 +1230,7 @@
               <button class="primary" id="generateCaptureBtn">生成采集脚本</button>
               <button class="ghost" id="copyCaptureBtn">复制采集脚本</button>
             </div>
-            <div class="field-card" style="margin-top:12px"><label>官网采集结果 JSON</label><textarea id="officialCaptureInput" class="script-box compact" spellcheck="false" placeholder="在官网运行采集脚本后，把复制出来的 JSON 粘贴到这里。"></textarea></div>
+            <div class="field-card" style="margin-top:12px"><label>官网采集结果 JSON</label><textarea id="officialCaptureInput" class="script-box compact" spellcheck="false" placeholder="这里不要粘贴 (() => { ... }) 脚本。请先到官网 Console 运行采集脚本，再把弹窗/剪贴板里的 JSON 结果粘贴到这里。"></textarea></div>
             <div class="action-strip">
               <button class="primary" id="importCaptureBtn">导入到档案</button>
             </div>
@@ -2334,11 +2334,19 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
         alert("请先粘贴官网采集结果 JSON。");
         return;
       }
+      if (/^\(?\s*\(\s*\)\s*=>|const\s+sections\s*=|buildOfficialCaptureScript|document\.querySelectorAll/.test(raw)) {
+        alert("你现在粘贴的是“采集脚本”，不是“采集结果 JSON”。正确步骤：1）复制采集脚本；2）到新凯来官网页面 Console 粘贴运行；3）把运行后弹窗/剪贴板里的 { \"source\": ... } JSON 结果粘贴到这里；4）再点导入。");
+        return;
+      }
+      if (!/^[\[{]/.test(raw)) {
+        alert("这里需要粘贴 JSON 结果，开头通常是 { 或 [。请先在官网 Console 运行采集脚本，再复制生成的 JSON。");
+        return;
+      }
       let data;
       try {
         data = JSON.parse(raw);
       } catch (err) {
-        alert(`JSON 解析失败：${err.message || String(err)}`);
+        alert(`JSON 解析失败：${err.message || String(err)}\n\n请确认粘贴的是官网采集脚本运行后的 JSON 结果，而不是脚本本身。`);
         return;
       }
       const values = profileValues();
