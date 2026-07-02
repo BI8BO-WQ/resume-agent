@@ -1164,7 +1164,11 @@
             <div class="field-card"><label>实习/工作经历摘要</label><textarea id="profileExperience" placeholder="用于填写实习经历、项目经历、工作职责等长文本。"></textarea></div>
             <div class="field-card"><label>项目经历摘要</label><textarea id="profileProjects" placeholder="用于填写项目经验、作品、竞赛、科研项目等。"></textarea></div>
             <div class="field-card"><label>证书</label><textarea id="profileCertificates" placeholder="用于填写英语、计算机、职业资格、技能证书等。"></textarea></div>
-            <div class="field-card"><label>自我描述</label><textarea id="profileSummary" placeholder="用于填写自我描述/个人优势。"></textarea></div>
+            <div class="field-card">
+              <label>自我评价</label>
+              <textarea id="profileSummary" placeholder="留空也可以，生成填表脚本时会自动补一版通用自我评价。"></textarea>
+              <button type="button" class="ghost" id="fillSummaryBtn" style="margin-top:8px;min-height:34px">生成通用自我评价</button>
+            </div>
             <div class="action-strip">
               <button class="primary" id="quickAutofillBtn">提取并复制脚本</button>
               <button class="ghost" id="extractProfileBtn">仅从简历提取</button>
@@ -1932,6 +1936,38 @@
       return values;
     }
 
+    function defaultSelfEvaluation(values = profileValues()) {
+      const major = values.profileMajor ? `具备${values.profileMajor}相关学习背景，` : "";
+      const school = values.profileSchool ? `在${values.profileSchool}学习期间，` : "";
+      const project = values.profileProjects || values.profileExperience
+        ? "有项目/实践经历，能够围绕目标拆解任务、推进落地并及时复盘。"
+        : "具备较强的学习能力、执行力和责任心，能够快速理解岗位要求并主动补齐能力短板。";
+      return `${school}${major}本人做事认真负责，沟通协作意识较强，能够稳定投入工作。${project}希望在岗位中持续提升专业能力，为团队创造实际价值。`;
+    }
+
+    function ensureDefaultSelfEvaluation() {
+      const values = profileValues();
+      if (!values.profileSummary) {
+        $("profileSummary").value = defaultSelfEvaluation(values);
+        saveProfile();
+      }
+      return $("profileSummary").value.trim();
+    }
+
+    function estimateEnrollmentDate(values) {
+      const degree = values.profileDegree || "";
+      const match = String(values.profileGraduation || "").match(/(20\d{2})/);
+      if (!match) return "";
+      const gradYear = Number(match[1]);
+      const years = /博士/.test(degree) ? 4 : /硕士|研究生/.test(degree) ? 3 : /大专|专科/.test(degree) ? 3 : /本科/.test(degree) ? 4 : 0;
+      return years ? `${gradYear - years}-09` : "";
+    }
+
+    function extractAcademicSignal(values, patterns) {
+      const text = [values.profileEducation, values.profileAwards, values.profileCertificates].filter(Boolean).join("\n");
+      return firstMatch(text, patterns);
+    }
+
     function setProfileValues(values) {
       profileFieldIds.forEach((id) => {
         if (values[id] !== undefined) $(id).value = id === "profileMajor" ? cleanMajor(values[id]) : (values[id] || "");
@@ -2003,6 +2039,16 @@
 
     function autofillPayload() {
       const values = profileValues();
+      const summary = values.profileSummary || defaultSelfEvaluation(values);
+      const enrollmentDate = estimateEnrollmentDate(values);
+      const gpa = extractAcademicSignal(values, [
+        /(?:GPA|CGPA|绩点)[:：]?\s*([0-9.]+(?:\s*\/\s*[0-9.]+)?)/i,
+        /([0-9.]+\s*\/\s*[0-9.]+)/
+      ]);
+      const ranking = extractAcademicSignal(values, [
+        /(?:排名|成绩排名)[:：]?\s*([^，。,；;\n]{2,24})/,
+        /(前\s*[0-9]+%|前\s*[一二三四五六七八九十]+%)/
+      ]);
       return {
         fields: [
           { labels: ["姓名", "真实姓名", "中文名"], value: values.profileName },
@@ -2010,9 +2056,15 @@
           { labels: ["邮箱", "电子邮箱", "邮箱地址", "Email"], value: values.profileEmail },
           { labels: ["性别"], value: values.profileGender },
           { labels: ["最高学历", "学历"], value: values.profileDegree },
-          { labels: ["学校", "毕业院校", "院校", "高校"], value: values.profileSchool },
-          { labels: ["专业", "所学专业"], value: values.profileMajor },
-          { labels: ["毕业时间", "毕业年份", "预计毕业时间"], value: values.profileGraduation },
+          { labels: ["学校", "毕业院校", "院校", "高校", "毕业学校"], value: values.profileSchool },
+          { labels: ["就读院系", "院系", "学院", "所在院系"], value: extractAcademicSignal(values, [/(?:院系|学院)[:：]\s*([^，。,；;\n]{2,28})/]) },
+          { labels: ["专业", "所学专业", "专业名称"], value: values.profileMajor },
+          { labels: ["入学时间", "入学年份"], value: enrollmentDate },
+          { labels: ["毕业时间", "毕业年份", "预计毕业时间", "毕业或预计毕业时间"], value: values.profileGraduation },
+          { labels: ["GPA/CGPA", "GPA", "CGPA", "绩点"], value: gpa },
+          { labels: ["学习成绩排名", "成绩排名", "排名"], value: ranking },
+          { labels: ["国家重点实验室"], value: "否" },
+          { labels: ["学生干部"], value: values.profileCampusRoles ? "是" : "否" },
           { labels: ["意向工作城市", "第一志愿城市", "工作城市", "期望城市"], value: values.profileCity1 },
           { labels: ["第二志愿城市", "第二意向城市"], value: values.profileCity2 },
           { labels: ["第三志愿城市", "第三意向城市"], value: values.profileCity3 },
@@ -2026,7 +2078,7 @@
           { labels: ["实习经历", "工作经历", "实践经历"], value: values.profileExperience },
           { labels: ["项目经历", "项目经验", "项目介绍"], value: values.profileProjects },
           { labels: ["证书", "资格证书", "技能证书", "语言证书"], value: values.profileCertificates },
-          { labels: ["自我描述", "自我评价", "个人优势", "自我介绍"], value: values.profileSummary }
+          { labels: ["自我评价", "个人评价", "自我描述", "个人优势", "自我介绍", "自我认知"], value: summary }
         ].filter((field) => field.value),
         confirmTexts: [
           "我已确认",
@@ -2047,16 +2099,48 @@
   const visible = (el) => !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
   const norm = (text) => String(text || "").replace(/\\s+/g, "").replace(/[：:*]/g, "").toLowerCase();
   const fire = (el) => {
-    ["input", "change", "blur"].forEach((type) => el.dispatchEvent(new Event(type, { bubbles: true })));
+    ["input", "change", "blur"].forEach((type) => {
+      try { el.dispatchEvent(new Event(type, { bubbles: true })); } catch (_err) {}
+    });
   };
+  const writableSelector = "input:not([type=hidden]):not([type=file]), textarea, select, [contenteditable=true]";
+  const comboSelector = "[role=combobox], .ant-select-selector, .el-select, .select, [class*=select]";
   const setNativeValue = (el, value) => {
-    const proto = el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-    const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
-    setter ? setter.call(el, value) : (el.value = value);
+    if (!el) return false;
+    if (el.isContentEditable) {
+      el.focus();
+      el.textContent = value;
+      fire(el);
+      return true;
+    }
+    const tag = String(el.tagName || "").toUpperCase();
+    if (tag === "SELECT") {
+      const wanted = norm(value);
+      const option = [...el.options].find((opt) => norm(opt.textContent).includes(wanted) || wanted.includes(norm(opt.textContent)) || norm(opt.value) === wanted);
+      if (option) el.value = option.value;
+      else el.value = value;
+      fire(el);
+      return true;
+    }
+    if (tag !== "INPUT" && tag !== "TEXTAREA") return false;
+    const type = String(el.type || "").toLowerCase();
+    if (type === "radio" || type === "checkbox") return false;
+    el.focus();
+    const proto = tag === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(proto, "value") && Object.getOwnPropertyDescriptor(proto, "value").set;
+    try {
+      setter ? setter.call(el, value) : (el.value = value);
+    } catch (_err) {
+      try { el.value = value; } catch (_ignore) { return false; }
+    }
     fire(el);
+    return true;
   };
-  const controls = () => [...document.querySelectorAll("input:not([type=hidden]):not([type=file]), textarea, [contenteditable=true], [role=combobox], .ant-select-selector, .el-select, .select")]
+  const writableControls = () => [...document.querySelectorAll(writableSelector)]
     .filter((el) => visible(el) && !el.disabled && !el.readOnly);
+  const comboControls = () => [...document.querySelectorAll(comboSelector)]
+    .filter((el) => visible(el) && !el.disabled && !el.readOnly);
+  const controls = () => [...writableControls(), ...comboControls()];
   const rectDistance = (a, b) => {
     const ar = a.getBoundingClientRect();
     const br = b.getBoundingClientRect();
@@ -2065,23 +2149,38 @@
     return dy * 4 + dx + Math.abs(br.top - ar.top);
   };
   const textNodes = () => [...document.querySelectorAll("label, span, p, div, dt, th")]
-    .filter((node) => visible(node) && (node.childElementCount <= 3) && (node.innerText || "").trim().length <= 40);
-  const labelNode = (labels) => {
+    .filter((node) => visible(node) && (node.childElementCount <= 4) && (node.innerText || "").trim().length <= 48);
+  const labelNodes = (labels) => {
     const keys = labels.map(norm).filter(Boolean);
-    const exact = textNodes().find((node) => keys.some((key) => norm(node.innerText) === key));
-    if (exact) return exact;
-    return textNodes().find((node) => {
+    const nodes = textNodes().filter((node) => {
       const text = norm(node.innerText || node.textContent || "");
-      return keys.some((key) => text.includes(key));
+      return keys.some((key) => text === key || text.includes(key));
     });
+    return nodes.sort((a, b) => {
+      const aExact = keys.some((key) => norm(a.innerText) === key) ? 0 : 1;
+      const bExact = keys.some((key) => norm(b.innerText) === key) ? 0 : 1;
+      const aHasControl = fieldNearLabel(a, writableControls()) || fieldNearLabel(a, comboControls()) ? 0 : 1;
+      const bHasControl = fieldNearLabel(b, writableControls()) || fieldNearLabel(b, comboControls()) ? 0 : 1;
+      return aExact - bExact || aHasControl - bHasControl;
+    });
+  };
+  const labelNode = (labels) => labelNodes(labels)[0];
+  const fieldNearLabel = (label, candidates) => {
+    if (!label) return null;
+    const lr = label.getBoundingClientRect();
+    return candidates
+      .filter((el) => {
+        const er = el.getBoundingClientRect();
+        return er.top >= lr.top - 14 && er.top <= lr.bottom + 96 && er.left >= lr.left - 28;
+      })
+      .sort((a, b) => rectDistance(label, a) - rectDistance(label, b))[0] || null;
   };
   const containers = () => [...document.querySelectorAll("label, .form-item, .ant-form-item, .el-form-item, .mokahr-form-item, [class*=form], [class*=item], div")]
     .filter(visible);
   const findContainer = (labels) => {
-    const label = labelNode(labels);
-    if (label) {
-      const closest = label.closest("label, .form-item, .ant-form-item, .el-form-item, .mokahr-form-item, [class*=form], [class*=item]") || label.parentElement;
-      if (closest) return closest;
+    for (const label of labelNodes(labels)) {
+      const closest = label.closest("label, .form-item, .ant-form-item, .el-form-item, .mokahr-form-item, [class*=form], [class*=item], [class*=row], [class*=field]") || label.parentElement;
+      if (closest && (closest.querySelector(writableSelector) || closest.querySelector(comboSelector) || closest.querySelector("input[type=radio], input[type=checkbox]"))) return closest;
     }
     const keys = labels.map(norm).filter(Boolean);
     return containers().sort((a, b) => (a.innerText || "").length - (b.innerText || "").length).find((node) => {
@@ -2089,22 +2188,16 @@
       return keys.some((key) => text.includes(key));
     });
   };
-  const fieldIn = (container, labels) => {
-    const label = labelNode(labels);
-    if (label) {
-      const inLabel = label.matches("label") ? [...label.querySelectorAll("input:not([type=hidden]):not([type=file]), textarea, [contenteditable=true]")].find(visible) : null;
+  const fieldIn = (container, labels, kind = "writable") => {
+    const pool = kind === "combo" ? comboControls() : writableControls();
+    for (const label of labelNodes(labels)) {
+      const inLabel = label.matches("label") ? [...label.querySelectorAll(kind === "combo" ? comboSelector : writableSelector)].find(visible) : null;
       if (inLabel) return inLabel;
-      const after = controls()
-        .filter((el) => {
-          const lr = label.getBoundingClientRect();
-          const er = el.getBoundingClientRect();
-          return er.top >= lr.top - 8 && er.left >= lr.left - 20;
-        })
-        .sort((a, b) => rectDistance(label, a) - rectDistance(label, b))[0];
-      if (after) return after;
+      const near = fieldNearLabel(label, pool);
+      if (near) return near;
     }
     if (!container) return null;
-    return [...container.querySelectorAll("input:not([type=hidden]):not([type=file]), textarea, [contenteditable=true]")]
+    return [...container.querySelectorAll(kind === "combo" ? comboSelector : writableSelector)]
       .filter((el) => visible(el) && !el.disabled && !el.readOnly)
       .sort((a, b) => rectDistance(container, a) - rectDistance(container, b))[0];
   };
@@ -2119,30 +2212,50 @@
     }
     return false;
   };
+  const chooseRadioOrCheckbox = (container, value) => {
+    if (!container) return false;
+    const target = norm(value);
+    const words = target === "是" ? ["是", "yes"] : target === "否" ? ["否", "no"] : [target];
+    const labels = [...container.querySelectorAll("label, span, div")]
+      .filter((el) => visible(el) && (el.innerText || "").trim().length <= 20)
+      .sort((a, b) => (a.innerText || "").length - (b.innerText || "").length);
+    const hit = labels.find((el) => words.some((word) => norm(el.innerText) === word || norm(el.innerText).includes(word)));
+    if (hit) {
+      const clickable = hit.closest("label") || hit;
+      clickable.click();
+      fire(clickable);
+      return true;
+    }
+    const inputs = [...container.querySelectorAll("input[type=radio], input[type=checkbox]")].filter((el) => !el.disabled);
+    if (inputs.length === 1 && !inputs[0].checked && target !== "否") {
+      inputs[0].click();
+      return true;
+    }
+    return false;
+  };
+  const fillComposite = async (el, value) => {
+    if (!el) return false;
+    el.click();
+    await sleep(180);
+    if (await clickOption(value)) return true;
+    const active = document.activeElement;
+    if (active && /input|textarea/i.test(active.tagName || "")) {
+      setNativeValue(active, value);
+      await sleep(220);
+      if (await clickOption(value)) return true;
+    }
+    return false;
+  };
   const fillOne = async (field) => {
     const container = findContainer(field.labels);
     if (!container) return { label: field.labels[0], ok: false, reason: "未找到字段" };
-    const direct = fieldIn(container, field.labels);
-    if (direct) {
-      if (direct.isContentEditable) {
-        direct.textContent = field.value;
-        fire(direct);
-      } else {
-        setNativeValue(direct, field.value);
-      }
+    if (chooseRadioOrCheckbox(container, field.value)) return { label: field.labels[0], ok: true, reason: "已选择单选/勾选项" };
+    const direct = fieldIn(container, field.labels, "writable");
+    if (direct && setNativeValue(direct, field.value)) {
       return { label: field.labels[0], ok: true, reason: "已填写输入框" };
     }
-    const clickable = [...container.querySelectorAll("[role=combobox], .ant-select-selector, .el-select, .select, input")]
-      .find(visible) || container;
-    clickable.click();
-    await sleep(200);
-    if (await clickOption(field.value)) return { label: field.labels[0], ok: true, reason: "已选择下拉项" };
-    const active = document.activeElement;
-    if (active && /input|textarea/i.test(active.tagName)) {
-      setNativeValue(active, field.value);
-      await sleep(200);
-      if (await clickOption(field.value)) return { label: field.labels[0], ok: true, reason: "已搜索并选择" };
-    }
+    const combo = fieldIn(container, field.labels, "combo") || [...container.querySelectorAll(comboSelector)].find(visible) || container;
+    if (await fillComposite(combo, field.value)) return { label: field.labels[0], ok: true, reason: "已选择下拉项" };
     return { label: field.labels[0], ok: false, reason: "找到字段但无法自动写入，需手动处理" };
   };
   const checkConfirmations = () => {
@@ -2186,6 +2299,7 @@
     }
 
     function generateAutofillScript() {
+      ensureDefaultSelfEvaluation();
       saveProfile();
       $("autofillScript").value = buildAutofillScript();
     }
@@ -2902,6 +3016,12 @@ ${highlighted}`;
     $("saveProfileBtn").addEventListener("click", () => {
       saveProfile();
       alert("应聘信息档案已保存到本地浏览器。");
+    });
+
+    $("fillSummaryBtn").addEventListener("click", () => {
+      $("profileSummary").value = defaultSelfEvaluation(profileValues());
+      saveProfile();
+      alert("已生成通用自我评价，可以按真实经历再微调。");
     });
 
     $("generateAutofillBtn").addEventListener("click", generateAutofillScript);
