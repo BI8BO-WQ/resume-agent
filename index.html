@@ -727,35 +727,11 @@
       width: 190px;
     }
 
-    .statusSelect {
+    .statusSelect,
+    .applyTypeSelect {
       background:
         linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,249,255,0.98));
       font-weight: 700;
-    }
-
-    .type-badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 34px;
-      border-radius: 999px;
-      padding: 7px 11px;
-      font-size: 13px;
-      font-weight: 800;
-      border: 1px solid rgba(214, 225, 238, 0.95);
-      background: #eef5ff;
-      color: var(--blue);
-    }
-
-    .type-badge.intern {
-      background: #e7f5e8;
-      color: var(--green);
-      border-color: rgba(18, 132, 92, 0.24);
-    }
-
-    .type-badge.autumn {
-      background: #eef5ff;
-      color: var(--blue);
-      border-color: rgba(23, 105, 232, 0.22);
     }
 
     .type-hint {
@@ -2798,29 +2774,16 @@ ${highlighted}`;
       }[char]));
     }
 
-    function inferApplyType(record = {}) {
-      const text = normalize([
-        record.role,
-        record.company,
-        record.target,
-        record.category,
-        record.nextStep,
-        record.advice,
-        $("role") ? $("role").value : "",
-        $("jd") ? $("jd").value : ""
-      ].filter(Boolean).join(" "));
-      if (/实习|日常实习|暑期实习|实习生|intern|internship|summer/.test(text)) return "实习";
-      return "秋招";
-    }
+    const applyTypeOptions = ["待选择", "实习", "秋招", "春招", "社招", "其他"];
 
     function normalizedRecords() {
       let changed = false;
       records = records.map((record) => {
-        const inferredType = inferApplyType(record);
         const version = record.resumeVersionName || resumeVersionName(record.company, record.role, record.score);
-        if (record.applyType === inferredType && record.resumeVersionName === version) return record;
+        const applyType = applyTypeOptions.includes(record.applyType) ? record.applyType : "待选择";
+        if (record.applyType === applyType && record.resumeVersionName === version) return record;
         changed = true;
-        return { ...record, applyType: inferredType, resumeVersionName: version };
+        return { ...record, applyType, resumeVersionName: version };
       });
       if (changed) saveRecords();
       return records;
@@ -2836,8 +2799,9 @@ ${highlighted}`;
             <div class="type-hint">${escapeHtml(record.resumeVersionType || (Number(record.score) < 50 ? "岗位定制补强版" : "岗位投递版"))}</div>
           </td>
           <td>
-            <span class="type-badge ${record.applyType === "实习" ? "intern" : "autumn"}">${escapeHtml(record.applyType || inferApplyType(record))}</span>
-            <div class="type-hint">自动识别</div>
+            <select data-index="${index}" class="applyTypeSelect">
+              ${applyTypeOptions.map((type) => `<option ${record.applyType === type ? "selected" : ""}>${type}</option>`).join("")}
+            </select>
           </td>
           <td>${record.score}%</td>
           <td>${escapeHtml((record.matchedSkills || []).slice(0, 4).join("、") || "待补充")}</td>
@@ -2855,6 +2819,13 @@ ${highlighted}`;
         select.addEventListener("change", (event) => {
           const index = Number(event.target.dataset.index);
           records[index].status = event.target.value;
+          saveRecords();
+        });
+      });
+      document.querySelectorAll(".applyTypeSelect").forEach((select) => {
+        select.addEventListener("change", (event) => {
+          const index = Number(event.target.dataset.index);
+          records[index].applyType = event.target.value;
           saveRecords();
         });
       });
@@ -3091,7 +3062,7 @@ ${highlighted}`;
       }
       if (active === "resumeTab") return currentResult.tailoredResume.replace(/<[^>]+>/g, "");
       if (active === "letter") return currentResult.greeting;
-      return records.map((r) => `${r.company},${r.role},${r.resumeVersionName || resumeVersionName(r.company, r.role, r.score)},${r.applyType || inferApplyType(r)},${r.score}%,${r.status},${r.nextStep || r.advice || ""}`).join("\n");
+      return records.map((r) => `${r.company},${r.role},${r.resumeVersionName || resumeVersionName(r.company, r.role, r.score)},${r.applyType || "待选择"},${r.score}%,${r.status},${r.nextStep || r.advice || ""}`).join("\n");
     }
 
     function exportCsv() {
@@ -3100,7 +3071,7 @@ ${highlighted}`;
         r.company,
         r.role,
         r.resumeVersionName || resumeVersionName(r.company, r.role, r.score),
-        r.applyType || inferApplyType(r),
+        r.applyType || "待选择",
         `${r.score}%`,
         (r.matchedSkills || []).join("、"),
         r.status || "待确认",
@@ -3262,7 +3233,7 @@ ${highlighted}`;
       }
       records.unshift({
         ...currentResult,
-        applyType: inferApplyType(currentResult),
+        applyType: "待选择",
         status: "待确认",
         nextStep: currentResult.score < 50
           ? `先核对并使用「${currentResult.resumeVersionName || resumeVersionName(currentResult.company, currentResult.role, currentResult.score)}」，补齐真实经历后再决定是否投递`
