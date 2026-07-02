@@ -727,6 +727,10 @@
       width: 190px;
     }
 
+    .official-link {
+      width: 112px;
+    }
+
     .statusSelect,
     .applyTypeSelect {
       background:
@@ -954,6 +958,9 @@
 
       <label for="role">岗位名称</label>
       <input id="role" placeholder="例如：AI产品经理">
+
+      <label for="jobOfficialUrl">校招官网/岗位链接</label>
+      <input id="jobOfficialUrl" placeholder="例如：https://career.xxx.com/campus">
 
       <label for="jd">岗位 JD</label>
       <div class="dropzone" id="jdDropzone">
@@ -1218,6 +1225,7 @@
                 <tr>
                   <th>公司</th>
                   <th>岗位</th>
+                  <th class="official-link">官网</th>
                   <th class="resume-version">投递简历</th>
                   <th class="apply-type">投递类型</th>
                   <th>匹配度</th>
@@ -1429,6 +1437,15 @@
     }
 
     const fallbackVerifiedJobs = [
+      portalJob({
+        company: "新凯来",
+        role: "校招官网：机械结构 / 工艺 / 研发方向",
+        family: "mechanical",
+        source: "新凯来招聘官网",
+        sourceUrl: "https://career.sicarrier.com/#/createCampus",
+        category: "校招官网入口",
+        keywords: ["机械", "结构", "工艺", "研发", "项目经历", "传感器"]
+      }),
       {
         company: "华勤技术",
         role: "结构工程师（2027届）",
@@ -2097,11 +2114,13 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
       const requirements = Array.isArray(result.requirements) ? result.requirements : extractRequirements(jd);
       const version = result.resumeVersionName || resumeVersionName(company, role, scoring.score);
       const lowMatch = scoring.score < 50;
+      const officialUrl = cleanOfficialUrl(result.officialUrl || $("jobOfficialUrl").value) || officialUrlFor(company, role);
       return {
         ...result,
         company,
         role,
         family,
+        officialUrl,
         resumeVersionName: version,
         resumeVersionType: lowMatch ? "岗位定制补强版" : "岗位投递版",
         advice: lowMatch
@@ -2776,14 +2795,50 @@ ${highlighted}`;
 
     const applyTypeOptions = ["待选择", "实习", "秋招", "春招", "社招", "其他"];
 
+    function cleanOfficialUrl(url) {
+      const value = String(url || "").trim();
+      if (!value) return "";
+      if (/^https?:\/\//i.test(value)) return value;
+      if (/^www\./i.test(value)) return `https://${value}`;
+      return "";
+    }
+
+    function companyAlias(text) {
+      return normalize(String(text || "")
+        .replace(/[（(].*?[）)]/g, "")
+        .replace(/有限公司|有限责任公司|股份有限公司|集团|技术|科技|招聘|校园|校招/g, "")
+        .replace(/\s+/g, ""));
+    }
+
+    function officialUrlFor(company, role = "") {
+      const companyKey = companyAlias(company);
+      if (!companyKey) return "";
+      const roleText = normalize(role);
+      const candidates = [...verifiedJobs, ...fallbackVerifiedJobs]
+        .filter((job, index, list) => list.findIndex((item) => item === job) === index)
+        .map((job) => {
+          const jobCompany = companyAlias(job.company);
+          const companyHit = jobCompany && (jobCompany.includes(companyKey) || companyKey.includes(jobCompany));
+          if (!companyHit) return null;
+          let score = 20;
+          if (roleText && normalize(job.role).includes(roleText)) score += 20;
+          if (job.verificationLevel === "open" || job.verificationLevel === "official-page") score += 8;
+          return { score, url: cleanOfficialUrl(job.url || job.sourceUrl) };
+        })
+        .filter((item) => item && item.url)
+        .sort((a, b) => b.score - a.score);
+      return candidates[0] ? candidates[0].url : "";
+    }
+
     function normalizedRecords() {
       let changed = false;
       records = records.map((record) => {
         const version = record.resumeVersionName || resumeVersionName(record.company, record.role, record.score);
         const applyType = applyTypeOptions.includes(record.applyType) ? record.applyType : "待选择";
-        if (record.applyType === applyType && record.resumeVersionName === version) return record;
+        const officialUrl = cleanOfficialUrl(record.officialUrl || record.url || record.sourceUrl) || officialUrlFor(record.company, record.role);
+        if (record.applyType === applyType && record.resumeVersionName === version && record.officialUrl === officialUrl) return record;
         changed = true;
-        return { ...record, applyType, resumeVersionName: version };
+        return { ...record, applyType, resumeVersionName: version, officialUrl };
       });
       if (changed) saveRecords();
       return records;
@@ -2794,6 +2849,7 @@ ${highlighted}`;
         <tr>
           <td>${escapeHtml(record.company)}</td>
           <td>${escapeHtml(record.role)}</td>
+          <td>${record.officialUrl ? `<a class="primary-link" href="${escapeHtml(record.officialUrl)}" target="_blank" rel="noopener">打开官网</a>` : `<span class="small">未填写</span>`}</td>
           <td>
             <strong>${escapeHtml(record.resumeVersionName || resumeVersionName(record.company, record.role, record.score))}</strong>
             <div class="type-hint">${escapeHtml(record.resumeVersionType || (Number(record.score) < 50 ? "岗位定制补强版" : "岗位投递版"))}</div>
@@ -2814,7 +2870,7 @@ ${highlighted}`;
           <td><button class="deleteRecordBtn" data-index="${index}">删除</button></td>
         </tr>
       `).join("");
-      $("trackerBody").innerHTML = rows || `<tr><td colspan="9" class="small">暂无记录。完成岗位分析后点击“保存记录”。</td></tr>`;
+      $("trackerBody").innerHTML = rows || `<tr><td colspan="10" class="small">暂无记录。完成岗位分析后点击“保存记录”。</td></tr>`;
       document.querySelectorAll(".statusSelect").forEach((select) => {
         select.addEventListener("change", (event) => {
           const index = Number(event.target.dataset.index);
@@ -2991,6 +3047,7 @@ ${highlighted}`;
           if (!job) return;
           $("company").value = job.company;
           $("role").value = job.role;
+          $("jobOfficialUrl").value = cleanOfficialUrl(job.url || job.sourceUrl);
           $("jobFamily").value = job.family || "auto";
           $("jd").value = `岗位：${job.role}
 公司：${job.company}
@@ -3062,14 +3119,15 @@ ${highlighted}`;
       }
       if (active === "resumeTab") return currentResult.tailoredResume.replace(/<[^>]+>/g, "");
       if (active === "letter") return currentResult.greeting;
-      return records.map((r) => `${r.company},${r.role},${r.resumeVersionName || resumeVersionName(r.company, r.role, r.score)},${r.applyType || "待选择"},${r.score}%,${r.status},${r.nextStep || r.advice || ""}`).join("\n");
+      return records.map((r) => `${r.company},${r.role},${r.officialUrl || officialUrlFor(r.company, r.role)},${r.resumeVersionName || resumeVersionName(r.company, r.role, r.score)},${r.applyType || "待选择"},${r.score}%,${r.status},${r.nextStep || r.advice || ""}`).join("\n");
     }
 
     function exportCsv() {
-      const header = ["公司", "岗位", "投递简历", "投递类型", "匹配度", "核心亮点", "状态", "下一步"];
+      const header = ["公司", "岗位", "校招官网", "投递简历", "投递类型", "匹配度", "核心亮点", "状态", "下一步"];
       const rows = records.map((r) => [
         r.company,
         r.role,
+        r.officialUrl || officialUrlFor(r.company, r.role),
         r.resumeVersionName || resumeVersionName(r.company, r.role, r.score),
         r.applyType || "待选择",
         `${r.score}%`,
@@ -3115,6 +3173,7 @@ ${highlighted}`;
       $("resume").value = sampleResume;
       $("company").value = "某大厂";
       $("role").value = "AI产品经理 - Agent方向";
+      $("jobOfficialUrl").value = "";
       $("jd").value = sampleJd;
       $("jobFamily").value = "auto";
       $("style").value = "pm";
@@ -3220,7 +3279,7 @@ ${highlighted}`;
 
     $("clearBtn").addEventListener("click", () => {
       if (!confirm("确认清空输入内容？")) return;
-      ["resume", "company", "role", "jd"].forEach((id) => $(id).value = "");
+      ["resume", "company", "role", "jobOfficialUrl", "jd"].forEach((id) => $(id).value = "");
       currentResult = null;
       $("empty").classList.remove("hidden");
       document.querySelectorAll(".tabpane").forEach((pane) => pane.classList.add("hidden"));
@@ -3233,6 +3292,7 @@ ${highlighted}`;
       }
       records.unshift({
         ...currentResult,
+        officialUrl: cleanOfficialUrl($("jobOfficialUrl").value) || officialUrlFor(currentResult.company, currentResult.role),
         applyType: "待选择",
         status: "待确认",
         nextStep: currentResult.score < 50
