@@ -2231,7 +2231,7 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
       .filter((text) => text && text.length <= 32 && !/^(是|否|删除|新增)$/.test(text));
     return texts[0] || "";
   };
-  const itemSelector = ".el-form-item, .ant-form-item, .form-item, [class*=form-item], [class*=FormItem], [class*=field], [class*=row], tr, label";
+  const itemSelector = ".el-form-item, .ant-form-item, .form-item, [class*=form-item], [class*=FormItem], tr, label";
   const collectVisible = (section) => {
     const rows = [];
     const seen = new Set();
@@ -2247,6 +2247,7 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
     [...document.querySelectorAll(itemSelector)].filter(visible).forEach((item) => {
       const controls = [...item.querySelectorAll(controlSelector)].filter(visible);
       if (!controls.length) return;
+      if (controls.length > 6) return;
       const value = controls.map(readValue).filter(Boolean).join(" / ");
       if (!value) return;
       push(labelFrom(item, controls[0]), value);
@@ -2302,6 +2303,25 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
       return [];
     }
 
+    function cleanCapturedScalar(value, labels = []) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      const key = labels.map(captureKey).join("|");
+      const parts = raw.split(/\s+\/\s+/).map((part) => part.trim()).filter(Boolean);
+      const fromParts = (pattern) => parts.find((part) => pattern.test(part)) || "";
+      if (/邮箱|email/.test(key)) return firstMatch(raw, [/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/]) || raw;
+      if (/手机|电话/.test(key)) return firstMatch(raw, [/(1[3-9]\d{9})/]) || "";
+      if (/证件号码|身份证/.test(key)) return firstMatch(raw, [/([0-9]{17}[0-9Xx]|[0-9]{15})/]) || raw;
+      if (/性别/.test(key)) return fromParts(/^(男|女)$/) || firstMatch(raw, [/(男|女)/]) || raw;
+      if (/国家|国籍/.test(key)) return fromParts(/^(中国|中华人民共和国)$/) || firstMatch(raw, [/(中国|中华人民共和国)/]) || raw;
+      if (/出生|生日/.test(key)) return firstMatch(raw, [/((?:19|20)\d{2}[-./年](?:0?[1-9]|1[0-2])[-./月](?:0?[1-9]|[12]\d|3[01])日?)/]) || raw;
+      if (/政治面貌/.test(key)) return firstMatch(raw, [/(中共党员|中共预备党员|共青团员|群众)/]) || raw;
+      if (/姓名|籍贯|生源地|城市|所在地|地址|证件类型|招聘渠道|到岗时间|学历|学校|院校|学院|专业|入学|毕业|gpa|cgpa|绩点|排名|学习形式|导师/.test(key) && parts.length > 1) {
+        return parts.find((part) => part.length <= 36 && !/^(是|否|新增|删除)$/.test(part)) || parts[0];
+      }
+      return raw;
+    }
+
     function capturedValue(data, labels, sections = []) {
       const rows = capturedRows(data);
       const labelKeys = labels.map(captureKey).filter(Boolean);
@@ -2309,12 +2329,26 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
       const scoped = sectionKeys.length
         ? rows.filter((row) => sectionKeys.some((key) => captureKey(row.section).includes(key)))
         : rows;
-      const match = (pool, exact) => pool.find((row) => {
-        const label = captureKey(row.label);
-        return labelKeys.some((key) => exact ? label === key : (label.includes(key) || key.includes(label)));
+      const candidates = [...scoped, ...rows]
+        .filter((row, index, list) => list.findIndex((item) => item === row) === index)
+        .map((row) => {
+          const label = captureKey(row.label);
+          const exact = labelKeys.some((key) => label === key);
+          const fuzzy = labelKeys.some((key) => label.includes(key) || key.includes(label));
+          const value = cleanCapturedScalar(row.value, labels);
+          const slashCount = String(row.value || "").split(/\s+\/\s+/).length - 1;
+          return { row, exact, fuzzy, value, slashCount };
+        })
+        .filter((item) => (item.exact || item.fuzzy) && item.value);
+      candidates.sort((a, b) => {
+        const aScoped = scoped.includes(a.row) ? 0 : 1;
+        const bScoped = scoped.includes(b.row) ? 0 : 1;
+        return aScoped - bScoped
+          || Number(!a.exact) - Number(!b.exact)
+          || a.slashCount - b.slashCount
+          || a.value.length - b.value.length;
       });
-      const hit = match(scoped, true) || match(scoped, false) || match(rows, true) || match(rows, false);
-      return hit ? String(hit.value || "").trim() : "";
+      return candidates[0] ? candidates[0].value : "";
     }
 
     function capturedSectionText(data, sections = []) {
@@ -2350,7 +2384,9 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
         return;
       }
       const values = profileValues();
-      const pick = (currentId, labels, sections = []) => capturedValue(data, labels, sections) || values[currentId] || "";
+      const pick = (currentId, labels, sections = []) => (
+        capturedValue(data, labels, sections) || cleanCapturedScalar(values[currentId], labels) || ""
+      );
       const section = (currentId, names) => capturedSectionText(data, names) || values[currentId] || "";
       const mapped = {
         profileName: pick("profileName", ["姓名", "真实姓名", "中文名"], ["基本信息"]),
