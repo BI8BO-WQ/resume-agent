@@ -865,10 +865,6 @@
       line-height: 1.55;
     }
 
-    .script-box.compact {
-      min-height: 150px;
-    }
-
     .small {
       font-size: 12px;
       color: var(--muted);
@@ -1140,7 +1136,7 @@
           <div class="panel span-12">
             <h2>官网半自动填表档案</h2>
             <div class="note">
-              简化流程：先从简历或已填写官网采集档案，再生成填表脚本到校招官网 Console 运行。脚本只读表/填表，不会自动点击“提交申请”。
+              简化流程：先从简历整理并补全你的应聘档案，再生成填表脚本到校招官网 Console 运行。脚本只填表，不会自动点击“提交申请”。
             </div>
           </div>
 
@@ -1213,7 +1209,6 @@
               <textarea id="profileSummary" placeholder="留空也可以，生成填表脚本时会自动补一版通用自我评价。"></textarea>
               <button type="button" class="ghost" id="fillSummaryBtn" style="margin-top:8px;min-height:34px">生成通用自我评价</button>
             </div>
-            <div class="field-card"><label>官网采集原始快照</label><textarea id="profileOfficialSnapshot" placeholder="导入官网采集结果后会自动保存原始 JSON，方便以后核对。"></textarea></div>
             <div class="action-strip">
               <button class="primary" id="quickAutofillBtn">提取并复制脚本</button>
               <button class="ghost" id="extractProfileBtn">仅从简历提取</button>
@@ -1222,19 +1217,7 @@
           </div>
 
           <div class="panel span-5">
-            <h2>官网脚本工具</h2>
-            <div class="section-title">采集官网已填信息</div>
-            <div class="hint">在你已经填得比较完整的官网页面运行采集脚本，可把当前官网各栏目表单值整理成 JSON，再粘贴回这里导入档案。</div>
-            <div class="field-card" style="margin-top:12px"><label>采集脚本</label><textarea id="captureScript" class="script-box compact" spellcheck="false" placeholder="点击生成采集脚本后，这里会出现可复制的 Console 脚本。"></textarea></div>
-            <div class="action-strip">
-              <button class="primary" id="generateCaptureBtn">生成采集脚本</button>
-              <button class="ghost" id="copyCaptureBtn">复制采集脚本</button>
-            </div>
-            <div class="field-card" style="margin-top:12px"><label>官网采集结果 JSON</label><textarea id="officialCaptureInput" class="script-box compact" spellcheck="false" placeholder="这里不要粘贴 (() => { ... }) 脚本。请先到官网 Console 运行采集脚本，再把弹窗/剪贴板里的 JSON 结果粘贴到这里。"></textarea></div>
-            <div class="action-strip">
-              <button class="primary" id="importCaptureBtn">导入到档案</button>
-            </div>
-
+            <h2>填表脚本</h2>
             <div class="section-title">复制到官网 Console</div>
             <div class="field-card"><label>简历文件名关键词</label><input id="profileResumeFileName" placeholder="例如：简历-机械.pdf"></div>
             <div class="hint">浏览器脚本通常不能直接读取本地文件路径；若官网文件选择框无法自动写入，请手动点击上传简历。</div>
@@ -1408,7 +1391,6 @@
       "profilePatents",
       "profileFamily",
       "profileSummary",
-      "profileOfficialSnapshot",
       "profileResumeFileName"
     ];
 
@@ -2171,274 +2153,6 @@ ${certificates ? `\n\n【证书/技能】\n${certificates}` : ""}
 
     function saveProfile() {
       localStorage.setItem("resumeAgentApplyProfile", JSON.stringify(profileValues()));
-    }
-
-    function buildOfficialCaptureScript() {
-      const sections = [
-        "基本信息",
-        "求职意向",
-        "教育经历",
-        "工作经历",
-        "项目经历",
-        "语言情况",
-        "发表论文",
-        "竞赛获奖",
-        "奖学金",
-        "发明专利",
-        "亲属信息",
-        "自我评价"
-      ];
-      return `(() => {
-  const sections = ${JSON.stringify(sections)};
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const visible = (el) => !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
-  const norm = (text) => String(text || "").replace(/\\s+/g, "").replace(/[：:*]/g, "").toLowerCase();
-  const clean = (text) => String(text || "").replace(/\\s+/g, " ").replace(/^\\*+/, "").trim();
-  const sectionNodes = () => [...document.querySelectorAll("a, button, li, span, div, [role=button], [class*=menu], [class*=nav]")]
-    .filter((el) => visible(el) && clean(el.innerText).length > 0 && clean(el.innerText).length <= 30);
-  const openSection = async (name) => {
-    const key = norm(name);
-    const target = sectionNodes().find((el) => norm(el.innerText) === key)
-      || sectionNodes().find((el) => norm(el.innerText).includes(key));
-    if (!target) return false;
-    (target.closest("a,button,li,[role=button]") || target).click();
-    await sleep(650);
-    return true;
-  };
-  const controlSelector = "input:not([type=hidden]):not([type=file]), textarea, select, [contenteditable=true], [role=combobox], .el-select, .ant-select-selector, [class*=select]";
-  const readValue = (el) => {
-    if (!el || !visible(el)) return "";
-    const tag = (el.tagName || "").toLowerCase();
-    const type = String(el.type || "").toLowerCase();
-    if (type === "radio" || type === "checkbox") {
-      if (!el.checked) return "";
-      const label = el.closest("label");
-      return clean(label ? label.innerText : el.value);
-    }
-    if (tag === "select") {
-      return clean(el.options && el.selectedIndex >= 0 ? el.options[el.selectedIndex].textContent : el.value);
-    }
-    if (el.isContentEditable) return clean(el.innerText || el.textContent);
-    return clean(el.value || el.innerText || el.textContent);
-  };
-  const labelFrom = (item, control) => {
-    const direct = item.querySelector(".el-form-item__label, .ant-form-item-label, label, [class*=label], [class*=Label]");
-    if (direct && clean(direct.innerText || direct.textContent)) return clean(direct.innerText || direct.textContent).replace(/\\s*[:：]$/, "");
-    const aria = control && (control.getAttribute("aria-label") || control.placeholder || control.name);
-    if (aria) return clean(aria).replace(/\\s*[:：]$/, "");
-    const texts = [...item.querySelectorAll("span, div, p, td, th")]
-      .map((node) => clean(node.innerText || node.textContent))
-      .filter((text) => text && text.length <= 32 && !/^(是|否|删除|新增)$/.test(text));
-    return texts[0] || "";
-  };
-  const itemSelector = ".el-form-item, .ant-form-item, .form-item, [class*=form-item], [class*=FormItem], tr, label";
-  const collectVisible = (section) => {
-    const rows = [];
-    const seen = new Set();
-    const push = (label, value) => {
-      label = clean(label).replace(/\\s*[:：]$/, "");
-      value = clean(value);
-      if (!label || !value || value === label) return;
-      const key = norm(label) + "::" + norm(value);
-      if (seen.has(key)) return;
-      seen.add(key);
-      rows.push({ section, label, value });
-    };
-    [...document.querySelectorAll(itemSelector)].filter(visible).forEach((item) => {
-      const controls = [...item.querySelectorAll(controlSelector)].filter(visible);
-      if (!controls.length) return;
-      if (controls.length > 6) return;
-      const value = controls.map(readValue).filter(Boolean).join(" / ");
-      if (!value) return;
-      push(labelFrom(item, controls[0]), value);
-    });
-    [...document.querySelectorAll(controlSelector)].filter(visible).forEach((control) => {
-      const item = control.closest(itemSelector) || control.parentElement;
-      push(labelFrom(item || document.body, control), readValue(control));
-    });
-    return rows;
-  };
-  (async () => {
-    const payload = {
-      source: location.href,
-      capturedAt: new Date().toLocaleString(),
-      sections: {},
-      rows: []
-    };
-    for (const section of sections) {
-      const opened = await openSection(section);
-      if (!opened) continue;
-      const rows = collectVisible(section);
-      if (rows.length) {
-        payload.sections[section] = rows;
-        payload.rows.push(...rows);
-      }
-    }
-    if (!payload.rows.length) {
-      const rows = collectVisible("当前页面");
-      payload.sections["当前页面"] = rows;
-      payload.rows = rows;
-    }
-    const output = JSON.stringify(payload, null, 2);
-    try { await navigator.clipboard.writeText(output); } catch (_err) {}
-    const panel = document.createElement("div");
-    panel.style.cssText = "position:fixed;right:16px;top:16px;z-index:999999;max-width:520px;max-height:78vh;overflow:auto;background:#fff;border:1px solid #dbe3ee;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.16);padding:14px;font:13px/1.6 Microsoft YaHei,Arial;color:#142033";
-    panel.innerHTML = "<b>官网信息采集完成</b><br>已采集 " + payload.rows.length + " 条字段。若浏览器允许，JSON 已复制到剪贴板；也可以从下面手动复制。<br><textarea style='width:100%;height:220px;margin-top:8px;font:12px Consolas,monospace'>" + output.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char])) + "</textarea><br><button style='margin-top:8px;padding:6px 10px'>关闭</button>";
-    panel.querySelector("button").onclick = () => panel.remove();
-    document.body.appendChild(panel);
-    console.log(output);
-  })();
-})();`;
-    }
-
-    function captureKey(text) {
-      return String(text || "").replace(/\s+/g, "").replace(/[：:*]/g, "").toLowerCase();
-    }
-
-    function capturedRows(data) {
-      if (!data) return [];
-      if (Array.isArray(data)) return data;
-      if (Array.isArray(data.rows)) return data.rows;
-      if (data.sections && typeof data.sections === "object") return Object.values(data.sections).flat();
-      return [];
-    }
-
-    function cleanCapturedScalar(value, labels = []) {
-      const raw = String(value || "").trim();
-      if (!raw) return "";
-      const key = labels.map(captureKey).join("|");
-      const parts = raw.split(/\s+\/\s+/).map((part) => part.trim()).filter(Boolean);
-      const fromParts = (pattern) => parts.find((part) => pattern.test(part)) || "";
-      if (/邮箱|email/.test(key)) return firstMatch(raw, [/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/]) || raw;
-      if (/手机|电话/.test(key)) return firstMatch(raw, [/(1[3-9]\d{9})/]) || "";
-      if (/证件号码|身份证/.test(key)) return firstMatch(raw, [/([0-9]{17}[0-9Xx]|[0-9]{15})/]) || raw;
-      if (/性别/.test(key)) return fromParts(/^(男|女)$/) || firstMatch(raw, [/(男|女)/]) || raw;
-      if (/国家|国籍/.test(key)) return fromParts(/^(中国|中华人民共和国)$/) || firstMatch(raw, [/(中国|中华人民共和国)/]) || raw;
-      if (/出生|生日/.test(key)) return firstMatch(raw, [/((?:19|20)\d{2}[-./年](?:0?[1-9]|1[0-2])[-./月](?:0?[1-9]|[12]\d|3[01])日?)/]) || raw;
-      if (/政治面貌/.test(key)) return firstMatch(raw, [/(中共党员|中共预备党员|共青团员|群众)/]) || raw;
-      if (/姓名|籍贯|生源地|城市|所在地|地址|证件类型|招聘渠道|到岗时间|学历|学校|院校|学院|专业|入学|毕业|gpa|cgpa|绩点|排名|学习形式|导师/.test(key) && parts.length > 1) {
-        return parts.find((part) => part.length <= 36 && !/^(是|否|新增|删除)$/.test(part)) || parts[0];
-      }
-      return raw;
-    }
-
-    function capturedValue(data, labels, sections = []) {
-      const rows = capturedRows(data);
-      const labelKeys = labels.map(captureKey).filter(Boolean);
-      const sectionKeys = sections.map(captureKey).filter(Boolean);
-      const scoped = sectionKeys.length
-        ? rows.filter((row) => sectionKeys.some((key) => captureKey(row.section).includes(key)))
-        : rows;
-      const candidates = [...scoped, ...rows]
-        .filter((row, index, list) => list.findIndex((item) => item === row) === index)
-        .map((row) => {
-          const label = captureKey(row.label);
-          const exact = labelKeys.some((key) => label === key);
-          const fuzzy = labelKeys.some((key) => label.includes(key) || key.includes(label));
-          const value = cleanCapturedScalar(row.value, labels);
-          const slashCount = String(row.value || "").split(/\s+\/\s+/).length - 1;
-          return { row, exact, fuzzy, value, slashCount };
-        })
-        .filter((item) => (item.exact || item.fuzzy) && item.value);
-      candidates.sort((a, b) => {
-        const aScoped = scoped.includes(a.row) ? 0 : 1;
-        const bScoped = scoped.includes(b.row) ? 0 : 1;
-        return aScoped - bScoped
-          || Number(!a.exact) - Number(!b.exact)
-          || a.slashCount - b.slashCount
-          || a.value.length - b.value.length;
-      });
-      return candidates[0] ? candidates[0].value : "";
-    }
-
-    function capturedSectionText(data, sections = []) {
-      const sectionKeys = sections.map(captureKey).filter(Boolean);
-      const rows = capturedRows(data).filter((row) => (
-        !sectionKeys.length || sectionKeys.some((key) => captureKey(row.section).includes(key))
-      ));
-      const lines = rows
-        .filter((row) => row.label && row.value)
-        .map((row) => `${row.label}：${row.value}`);
-      return [...new Set(lines)].join("\n");
-    }
-
-    function importOfficialCapture() {
-      const raw = $("officialCaptureInput").value.trim();
-      if (!raw) {
-        alert("请先粘贴官网采集结果 JSON。");
-        return;
-      }
-      if (/^\(?\s*\(\s*\)\s*=>|const\s+sections\s*=|buildOfficialCaptureScript|document\.querySelectorAll/.test(raw)) {
-        alert("你现在粘贴的是“采集脚本”，不是“采集结果 JSON”。正确步骤：1）复制采集脚本；2）到新凯来官网页面 Console 粘贴运行；3）把运行后弹窗/剪贴板里的 { \"source\": ... } JSON 结果粘贴到这里；4）再点导入。");
-        return;
-      }
-      if (!/^[\[{]/.test(raw)) {
-        alert("这里需要粘贴 JSON 结果，开头通常是 { 或 [。请先在官网 Console 运行采集脚本，再复制生成的 JSON。");
-        return;
-      }
-      let data;
-      try {
-        data = JSON.parse(raw);
-      } catch (err) {
-        alert(`JSON 解析失败：${err.message || String(err)}\n\n请确认粘贴的是官网采集脚本运行后的 JSON 结果，而不是脚本本身。`);
-        return;
-      }
-      const values = profileValues();
-      const pick = (currentId, labels, sections = []) => (
-        capturedValue(data, labels, sections) || cleanCapturedScalar(values[currentId], labels) || ""
-      );
-      const section = (currentId, names) => capturedSectionText(data, names) || values[currentId] || "";
-      const mapped = {
-        profileName: pick("profileName", ["姓名", "真实姓名", "中文名"], ["基本信息"]),
-        profilePhone: pick("profilePhone", ["手机号", "手机号码", "联系电话", "电话"], ["基本信息"]),
-        profileEmail: pick("profileEmail", ["邮箱", "电子邮箱", "邮箱地址", "Email"], ["基本信息"]),
-        profileGender: pick("profileGender", ["性别"], ["基本信息"]),
-        profileNationality: pick("profileNationality", ["国家/地区", "国家", "国籍"], ["基本信息"]),
-        profileBirthDate: pick("profileBirthDate", ["出生日期", "出生时间", "生日"], ["基本信息"]),
-        profileNativePlace: pick("profileNativePlace", ["籍贯", "生源地"], ["基本信息"]),
-        profilePoliticalStatus: pick("profilePoliticalStatus", ["政治面貌"], ["基本信息"]),
-        profileIdType: pick("profileIdType", ["证件类型", "证件类别"], ["基本信息"]),
-        profileIdNumber: pick("profileIdNumber", ["证件号码", "身份证号", "身份证号码"], ["基本信息"]),
-        profileCurrentLocation: pick("profileCurrentLocation", ["现居住地", "当前所在地", "现所在地"], ["基本信息"]),
-        profileAddress: pick("profileAddress", ["通讯地址", "联系地址", "现住址"], ["基本信息"]),
-        profileCity1: pick("profileCity1", ["意向工作城市", "第一志愿城市", "第一意向城市"], ["求职意向", "申请信息"]),
-        profileCity2: pick("profileCity2", ["第二志愿城市", "第二意向城市"], ["求职意向", "申请信息"]),
-        profileCity3: pick("profileCity3", ["第三志愿城市", "第三意向城市"], ["求职意向", "申请信息"]),
-        profileTransfer: pick("profileTransfer", ["是否接受工作城市调剂", "是否接受调剂", "是否服从调剂"], ["求职意向", "申请信息"]),
-        profileAvailability: pick("profileAvailability", ["到岗时间", "可到岗时间", "入职时间"], ["求职意向"]),
-        profileApplyChannel: pick("profileApplyChannel", ["招聘渠道", "应聘渠道", "获知渠道", "从何处了解到"], ["求职意向", "基本信息"]),
-        profilePortfolio: pick("profilePortfolio", ["作品集", "项目链接", "个人主页", "GitHub", "作品链接"], ["基本信息"]),
-        profileDegree: pick("profileDegree", ["最高学历", "学历"], ["教育经历"]),
-        profileSchool: pick("profileSchool", ["学校", "毕业院校", "院校", "高校", "毕业学校"], ["教育经历"]),
-        profileCollege: pick("profileCollege", ["学院", "院系", "就读院系", "毕业院校院系"], ["教育经历"]),
-        profileMajor: pick("profileMajor", ["专业", "所学专业", "专业名称"], ["教育经历"]),
-        profileEnrollment: pick("profileEnrollment", ["入学时间", "入学年份"], ["教育经历"]),
-        profileGraduation: pick("profileGraduation", ["毕业时间", "毕业年份", "预计毕业时间", "毕业或预计时间"], ["教育经历"]),
-        profileGpa: pick("profileGpa", ["GPA/CGPA", "GPA", "CGPA", "绩点"], ["教育经历"]),
-        profileRanking: pick("profileRanking", ["学习成绩排名", "成绩排名", "排名"], ["教育经历"]),
-        profileStudyMode: pick("profileStudyMode", ["学习形式", "培养方式"], ["教育经历"]),
-        profileEducationLocation: pick("profileEducationLocation", ["学校所在地", "学校所在地区"], ["教育经历"]),
-        profileTutor: pick("profileTutor", ["导师姓名", "导师"], ["教育经历"]),
-        profileMainCourses: pick("profileMainCourses", ["主修课程", "核心课程"], ["教育经历"]),
-        profileEducation: section("profileEducation", ["教育经历"]),
-        profileHighSchool: section("profileHighSchool", ["高中经历"]),
-        profileExperience: section("profileExperience", ["工作经历", "实习经历"]),
-        profileProjects: section("profileProjects", ["项目经历"]),
-        profileCampusRoles: section("profileCampusRoles", ["在校职务", "校园经历", "在校服务"]),
-        profileLanguages: section("profileLanguages", ["语言情况"]),
-        profileCertificates: section("profileCertificates", ["证书"]),
-        profilePapers: section("profilePapers", ["发表论文"]),
-        profileCompetitions: section("profileCompetitions", ["竞赛获奖"]),
-        profileAwards: section("profileAwards", ["竞赛获奖", "获奖经历", "荣誉"]),
-        profileScholarships: section("profileScholarships", ["奖学金"]),
-        profilePatents: section("profilePatents", ["发明专利", "专利"]),
-        profileFamily: section("profileFamily", ["亲属信息"]),
-        profileSummary: capturedValue(data, ["自我评价", "自我描述", "自我介绍", "个人优势"], ["自我评价", "基本信息"]) || values.profileSummary || "",
-        profileOfficialSnapshot: JSON.stringify(data, null, 2)
-      };
-      setProfileValues({ ...values, ...mapped });
-      saveProfile();
-      alert(`已导入官网采集信息：${capturedRows(data).length} 条字段。请检查关键隐私字段和长文本后再生成填表脚本。`);
     }
 
     function pickSection(text, titles, maxLen = 360) {
@@ -3611,24 +3325,6 @@ ${highlighted}`;
         alert("填表脚本已复制。");
       }
     });
-
-    $("generateCaptureBtn").addEventListener("click", () => {
-      $("captureScript").value = buildOfficialCaptureScript();
-    });
-
-    $("copyCaptureBtn").addEventListener("click", async () => {
-      if (!$("captureScript").value.trim()) $("captureScript").value = buildOfficialCaptureScript();
-      try {
-        await navigator.clipboard.writeText($("captureScript").value);
-        alert("采集脚本已复制。到你已填写的校招官网页面 Console 粘贴运行。");
-      } catch (_err) {
-        $("captureScript").select();
-        document.execCommand("copy");
-        alert("采集脚本已复制。");
-      }
-    });
-
-    $("importCaptureBtn").addEventListener("click", importOfficialCapture);
 
     document.querySelectorAll(".tab").forEach((tab) => {
       tab.addEventListener("click", () => {
